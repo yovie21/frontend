@@ -1,0 +1,326 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../../core/constants.dart';
+import '../../../core/utils.dart';
+import '../../../data/dto/dto.dart';
+import '../../../data/models/models.dart';
+import '../../../providers/admin_provider.dart';
+import '../widgets/modern_widgets.dart';
+
+class ProductPage extends StatefulWidget {
+  const ProductPage({super.key});
+
+  @override
+  State<ProductPage> createState() => _ProductPageState();
+}
+
+class _ProductPageState extends State<ProductPage> {
+  final _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AdminProvider>().initAdminData();
+    });
+  }
+
+  void _showForm({Product? product}) {
+    final namaCtrl = TextEditingController(text: product?.name ?? '');
+    final skuCtrl = TextEditingController(text: product?.sku ?? '');
+    final barcodeCtrl = TextEditingController(text: product?.barcode ?? '');
+    final priceCtrl = TextEditingController(text: product != null ? AppUtils.formatCurrency(product.price.toInt()) : '');
+    final costCtrl = TextEditingController(text: product != null ? AppUtils.formatCurrency(product.costPrice.toInt()) : '');
+    final minStockCtrl = TextEditingController(text: product != null ? product.minStock.toString() : '5');
+    final initialStockCtrl = TextEditingController(text: product == null ? '0' : '');
+
+    final admin = context.read<AdminProvider>();
+    final pId = product?.id;
+    int? selectedCat = product?.categoryId ?? (admin.categories.isNotEmpty ? admin.categories.first.id : null);
+    int? selectedUom = product?.uomId ?? (admin.uoms.isNotEmpty ? admin.uoms.first.id : null);
+
+    List<Map<String, dynamic>> extraUoms = [];
+    if (product != null && product.productUoms != null) {
+      for (final pu in product.productUoms!) {
+        extraUoms.add({
+          'uomId': pu['uomId'] ?? (admin.uoms.isNotEmpty ? admin.uoms.first.id : 1),
+          'factorCtrl': TextEditingController(text: pu['conversionFactor']?.toString() ?? '1'),
+          'priceCtrl': TextEditingController(text: AppUtils.formatCurrency((pu['price'] as num?)?.toInt() ?? 0)),
+        });
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setM) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom + 24, left: 24, right: 24, top: 24),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(product == null ? 'Tambah Produk' : 'Edit Produk', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 24),
+                TextField(controller: namaCtrl, decoration: const InputDecoration(labelText: 'Nama Produk *', prefixIcon: Icon(Icons.shopping_bag_outlined))),
+                const SizedBox(height: 16),
+                Row(children: [
+                  Expanded(child: TextField(controller: skuCtrl, decoration: const InputDecoration(labelText: 'SKU *', prefixIcon: Icon(Icons.qr_code)))),
+                  const SizedBox(width: 12),
+                  Expanded(child: TextField(controller: barcodeCtrl, decoration: const InputDecoration(labelText: 'Barcode', prefixIcon: Icon(Icons.barcode_reader)))),
+                ]),
+                const SizedBox(height: 16),
+                Row(children: [
+                  Expanded(child: DropdownButtonFormField<int>(value: selectedCat, decoration: const InputDecoration(labelText: 'Kategori'), items: admin.categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(), onChanged: (v) => selectedCat = v)),
+                  const SizedBox(width: 12),
+                  Expanded(child: DropdownButtonFormField<int>(value: selectedUom, decoration: const InputDecoration(labelText: 'Satuan Utama'), items: admin.uoms.map((u) => DropdownMenuItem(value: u.id, child: Text(u.symbol ?? u.name))).toList(), onChanged: (v) => selectedUom = v)),
+                ]),
+                const SizedBox(height: 16),
+                Row(children: [
+                  Expanded(child: TextField(controller: priceCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly, CurrencyInputFormatter()], decoration: const InputDecoration(labelText: 'Harga Jual Utama *', prefixText: 'Rp '))),
+                  const SizedBox(width: 12),
+                  Expanded(child: TextField(controller: costCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly, CurrencyInputFormatter()], decoration: const InputDecoration(labelText: 'Harga Modal *', prefixText: 'Rp '))),
+                ]),
+                const SizedBox(height: 16),
+                Row(children: [
+                  if (product == null)
+                    Expanded(child: TextField(controller: initialStockCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], decoration: const InputDecoration(labelText: 'Stok Awal'))),
+                  if (product == null) const SizedBox(width: 12),
+                  Expanded(child: TextField(controller: minStockCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], decoration: const InputDecoration(labelText: 'Min Stok Alert'))),
+                ]),
+
+                // MULTI UOM CONVERSION SECTION
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Multi-UOM (Satuan Alternatif)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    TextButton.icon(
+                      onPressed: () {
+                        if (admin.uoms.isEmpty) return;
+                        setM(() {
+                          extraUoms.add({
+                            'uomId': admin.uoms.first.id,
+                            'factorCtrl': TextEditingController(text: '12'),
+                            'priceCtrl': TextEditingController(text: '0'),
+                          });
+                        });
+                      },
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Tambah UOM'),
+                    ),
+                  ],
+                ),
+                for (int i = 0; i < extraUoms.length; i++)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField<int>(
+                                value: extraUoms[i]['uomId'],
+                                decoration: const InputDecoration(labelText: 'Satuan'),
+                                items: admin.uoms.map((u) => DropdownMenuItem(value: u.id, child: Text(u.symbol ?? u.name))).toList(),
+                                onChanged: (v) => setM(() => extraUoms[i]['uomId'] = v),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              onPressed: () => setM(() => extraUoms.removeAt(i)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: extraUoms[i]['factorCtrl'],
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                decoration: const InputDecoration(labelText: 'Isi (Faktor Konversi)'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                controller: extraUoms[i]['priceCtrl'],
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [FilteringTextInputFormatter.digitsOnly, CurrencyInputFormatter()],
+                                decoration: const InputDecoration(labelText: 'Harga Jual UOM', prefixText: 'Rp '),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                const SizedBox(height: 24),
+                ModernButton(
+                  text: 'Simpan Produk',
+                  onPressed: () async {
+                    if (namaCtrl.text.isEmpty || skuCtrl.text.isEmpty || priceCtrl.text.isEmpty) return;
+                    final uomList = <Map<String, dynamic>>[];
+                    for (var u in extraUoms) {
+                      final f = int.tryParse(u['factorCtrl'].text) ?? 1;
+                      final p = AppUtils.parseCurrency(u['priceCtrl'].text);
+                      if (u['uomId'] != null && f > 0 && p > 0) {
+                        uomList.add({
+                          'uomId': u['uomId'],
+                          'conversionFactor': f,
+                          'price': p,
+                        });
+                      }
+                    }
+
+                    final dto = ProductDto(
+                      name: namaCtrl.text.trim(),
+                      sku: skuCtrl.text.trim(),
+                      barcode: barcodeCtrl.text.trim().isEmpty ? null : barcodeCtrl.text.trim(),
+                      categoryId: selectedCat,
+                      uomId: selectedUom,
+                      price: AppUtils.parseCurrency(priceCtrl.text),
+                      costPrice: AppUtils.parseCurrency(costCtrl.text),
+                      minStock: int.tryParse(minStockCtrl.text) ?? 5,
+                      initialStock: product == null ? (int.tryParse(initialStockCtrl.text) ?? 0) : null,
+                      productUoms: uomList,
+                    );
+                    bool success = pId == null ? await admin.createProduct(dto) : await admin.updateProduct(pId, dto);
+                    if (!ctx.mounted) return;
+                    if (success) Navigator.pop(ctx);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final admin = context.watch<AdminProvider>();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Kelola Barang', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text('${admin.products.length} items', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.normal, color: AppColors.textSecondary)),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showForm(),
+        child: const Icon(Icons.add),
+      ),
+      body: Column(
+        children: [
+          Padding(padding: const EdgeInsets.all(16), child: TextField(controller: _searchCtrl, decoration: InputDecoration(hintText: 'Cari produk...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)), onChanged: (v) => admin.fetchProducts(query: v))),
+          Expanded(
+            child: admin.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : admin.products.isEmpty
+                    ? const Center(child: Text('Belum ada produk'))
+                    : Builder(builder: (ctx) {
+                        final alertCount = admin.products.where((p) => p.stock == 0 || (p.minStock > 0 && p.stock <= p.minStock)).length;
+                        return ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          itemCount: admin.products.length + (alertCount > 0 ? 1 : 0),
+                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          itemBuilder: (ctx, i) {
+                            if (alertCount > 0 && i == 0) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.alertBg,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.alertFg.withOpacity(0.3)),
+                                ),
+                                child: Text(
+                                  '$alertCount produk stok habis / menipis',
+                                  style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.alertFg),
+                                ),
+                              );
+                            }
+                            final p = admin.products[alertCount > 0 ? i - 1 : i];
+                            final habis = p.stock == 0;
+                            final menipis = !habis && p.minStock > 0 && p.stock <= p.minStock;
+                            return ModernCard(
+                              padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: habis ? AppColors.alertBg : (menipis ? AppColors.warnBg : AppColors.successBg),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(
+                                      habis ? Icons.error_outline : (menipis ? Icons.warning_amber : Icons.inventory_2_outlined),
+                                      color: habis ? AppColors.alertFg : (menipis ? AppColors.warnFg : AppColors.primary),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Stok ${p.stock}${p.minStock > 0 ? '  ·  min ${p.minStock}' : ''}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: habis ? AppColors.alertFg : (menipis ? AppColors.warnFg : AppColors.textSecondary),
+                                            fontWeight: habis || menipis ? FontWeight.w700 : FontWeight.w500,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Rp ${AppUtils.formatCurrency(p.price)}',
+                                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.primary),
+                                        ),
+                                        if (habis || menipis)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 4),
+                                            child: Text(
+                                              habis ? 'HABIS' : 'STOK MENIPIS',
+                                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: habis ? AppColors.alertFg : AppColors.warnFg, letterSpacing: 0.4),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(icon: const Icon(Icons.edit_outlined, size: 20, color: AppColors.textSecondary), onPressed: () => _showForm(product: p)),
+                                  IconButton(icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.alertFg), onPressed: () => admin.deleteProduct(p.id)),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      }),
+          ),
+        ],
+      ),
+    );
+  }
+}

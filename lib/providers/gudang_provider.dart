@@ -100,4 +100,16 @@ class GudangProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> payPurchaseOrder(int id, double amount) async {
+    try {
+      await StockService.payPurchaseOrder(id, amount);
+      await fetchPurchaseOrders();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
 }

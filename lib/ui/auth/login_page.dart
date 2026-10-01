@@ -55,33 +55,52 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 60),
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE7F0EA),
-                  borderRadius: BorderRadius.circular(24),
+              const SizedBox(height: 48),
+              Center(
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x200F3826),
+                        blurRadius: 20,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset(
+                      'assets/branding/app_icon_1024.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-                child: const Icon(Icons.storefront_rounded, size: 64, color: Color(0xFF2D3A2B)),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               const Text(
-                'Warungku',
+                'WARUNGKU',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 26,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF2D3A2B),
-                  letterSpacing: -1,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               const Text(
-                'Kelola warungmu dengan mudah',
+                'Sistem Kasir & Kelola Toko Modern',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Color(0xFF9A9A9A)),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
+                ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 36),
               TextField(
                 controller: _userCtrl,
                 decoration: const InputDecoration(

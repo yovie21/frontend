@@ -191,4 +191,8 @@ class StockService {
   static Future<void> updatePurchaseOrderStatus(int id, String status) async {
     await HttpClient.patch('/purchase_orders/$id', {'status': status});
   }
+
+  static Future<void> payPurchaseOrder(int id, double amount) async {
+    await HttpClient.patch('/purchase_orders/$id', {'payAmount': amount});
+  }
 }

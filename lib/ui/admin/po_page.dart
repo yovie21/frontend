@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/utils.dart';
+import '../../../core/constants.dart';
 import '../../../data/models/models.dart';
 import '../../../providers/gudang_provider.dart';
 import '../../../providers/admin_provider.dart';
@@ -24,10 +25,20 @@ class _PoPageState extends State<PoPage> {
 
   Future<void> _createPo() async {
     final gudang = context.read<GudangProvider>();
+    final admin = context.read<AdminProvider>();
+    
     if (gudang.suppliers.isEmpty || gudang.products.isEmpty) {
+      await Future.wait([
+        admin.fetchSuppliers(),
+        admin.fetchProducts(),
+      ]);
       await gudang.fetchPurchaseOrders();
     }
-    if (gudang.suppliers.isEmpty || gudang.products.isEmpty) {
+    
+    final suppliers = gudang.suppliers.isNotEmpty ? gudang.suppliers : admin.suppliers;
+    final products = gudang.products.isNotEmpty ? gudang.products : admin.products;
+    
+    if (suppliers.isEmpty || products.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Isi supplier dan produk di menu Admin dulu')),
@@ -36,13 +47,13 @@ class _PoPageState extends State<PoPage> {
       return;
     }
 
-    int supplierId = gudang.suppliers.first.id;
+    int supplierId = suppliers.first.id;
     List<Map<String, dynamic>> items = [
       {
-        'productId': gudang.products.first.id,
+        'productId': products.first.id,
         'qtyCtrl': TextEditingController(text: '1'),
         'priceCtrl': TextEditingController(
-          text: AppUtils.formatCurrency(gudang.products.first.costPrice.toInt()),
+          text: AppUtils.formatCurrency(products.first.costPrice.toInt()),
         ),
       }
     ];
@@ -90,7 +101,7 @@ class _PoPageState extends State<PoPage> {
                   DropdownButtonFormField<int>(
                     value: supplierId,
                     decoration: const InputDecoration(labelText: 'Supplier *', prefixIcon: Icon(Icons.business)),
-                    items: gudang.suppliers.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
+                    items: suppliers.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
                     onChanged: (v) => setM(() => supplierId = v ?? supplierId),
                   ),
                   const SizedBox(height: 16),
@@ -112,11 +123,11 @@ class _PoPageState extends State<PoPage> {
                                 child: DropdownButtonFormField<int>(
                                   value: items[i]['productId'],
                                   decoration: InputDecoration(labelText: 'Produk ${i + 1}'),
-                                  items: gudang.products
+                                  items: products
                                       .map((p) => DropdownMenuItem(value: p.id, child: Text(p.name)))
                                       .toList(),
                                   onChanged: (v) {
-                                    final p = gudang.products.firstWhere((e) => e.id == v);
+                                    final p = products.firstWhere((e) => e.id == v);
                                     setM(() {
                                       items[i]['productId'] = v;
                                       items[i]['priceCtrl'].text = AppUtils.formatCurrency(p.costPrice.toInt());
@@ -163,10 +174,10 @@ class _PoPageState extends State<PoPage> {
                   TextButton.icon(
                     onPressed: () => setM(() {
                       items.add({
-                        'productId': gudang.products.first.id,
+                        'productId': products.first.id,
                         'qtyCtrl': TextEditingController(text: '1'),
                         'priceCtrl': TextEditingController(
-                          text: AppUtils.formatCurrency(gudang.products.first.costPrice.toInt()),
+                          text: AppUtils.formatCurrency(products.first.costPrice.toInt()),
                         ),
                       });
                     }),

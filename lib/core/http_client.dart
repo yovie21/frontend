@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'constants.dart';
@@ -46,22 +47,27 @@ class HttpClient {
     final uri = Uri.parse('${AppConstants.baseUrl}$path');
     http.Response r;
     final body = data != null ? json.encode(data) : null;
+    const timeout = Duration(seconds: 12);
 
-    switch (method.toUpperCase()) {
-      case 'GET':
-        r = await http.get(uri, headers: _headers(includeToken: includeToken));
-        break;
-      case 'POST':
-        r = await http.post(uri, headers: _headers(includeToken: includeToken), body: body);
-        break;
-      case 'PATCH':
-        r = await http.patch(uri, headers: _headers(includeToken: includeToken), body: body);
-        break;
-      case 'DELETE':
-        r = await http.delete(uri, headers: _headers(includeToken: includeToken));
-        break;
-      default:
-        throw Exception('HTTP method $method tidak didukung');
+    try {
+      switch (method.toUpperCase()) {
+        case 'GET':
+          r = await http.get(uri, headers: _headers(includeToken: includeToken)).timeout(timeout);
+          break;
+        case 'POST':
+          r = await http.post(uri, headers: _headers(includeToken: includeToken), body: body).timeout(timeout);
+          break;
+        case 'PATCH':
+          r = await http.patch(uri, headers: _headers(includeToken: includeToken), body: body).timeout(timeout);
+          break;
+        case 'DELETE':
+          r = await http.delete(uri, headers: _headers(includeToken: includeToken)).timeout(timeout);
+          break;
+        default:
+          throw Exception('HTTP method $method tidak didukung');
+      }
+    } on TimeoutException {
+      throw Exception('Koneksi timeout. Cek internet Anda atau coba lagi.');
     }
 
     dynamic responseBody;

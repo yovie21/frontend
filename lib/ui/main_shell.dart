@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants.dart';
 import '../../data/models/models.dart';
 import '../../providers/auth_provider.dart';
 import 'admin/product_page.dart';
@@ -67,7 +68,6 @@ class _MainShellState extends State<MainShell> {
       case 'gudang':
         return [
           const StockOpnamePage(),
-          const StockReportPage(),
           const MenuPage(),
         ];
       default:
@@ -92,7 +92,6 @@ class _MainShellState extends State<MainShell> {
       case 'gudang':
         items = const [
           BottomNavigationBarItem(icon: Icon(Icons.warehouse_outlined), activeIcon: Icon(Icons.warehouse), label: 'Stok Opname'),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics_outlined), activeIcon: Icon(Icons.analytics), label: 'Laporan'),
           BottomNavigationBarItem(icon: Icon(Icons.menu_outlined), activeIcon: Icon(Icons.menu), label: 'Menu'),
         ];
         break;
@@ -106,13 +105,28 @@ class _MainShellState extends State<MainShell> {
 
     return Container(
       decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
         color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x060F172A),
+            blurRadius: 16,
+            offset: Offset(0, -4),
+          ),
+        ],
       ),
-      child: BottomNavigationBar(
-        currentIndex: _index < items.length ? _index : 0,
-        onTap: (i) => setState(() => _index = i),
-        items: items,
+      child: SafeArea(
+        child: BottomNavigationBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          currentIndex: _index < items.length ? _index : 0,
+          onTap: (i) => setState(() => _index = i),
+          items: items,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: const Color(0xFF94A3B8),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
+        ),
       ),
     );
   }

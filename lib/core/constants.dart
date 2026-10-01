@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Brand
-  static const primary = Color(0xFF1B3B2B);       // Forest Green
-  static const primaryDark = Color(0xFF12281D);
-  static const secondary = Color(0xFFD96B43);     // Terracotta Warm
-  static const accent = Color(0xFFE89A3C);        // Amber Soft
+  // Brand - Luxury Emerald & Champagne Palette
+  static const primary = Color(0xFF0F3826);       // Deep Royal Emerald
+  static const primaryDark = Color(0xFF092217);
+  static const secondary = Color(0xFFC99700);     // Champagne Gold Accent
+  static const accent = Color(0xFF10B981);        // Mint Emerald
 
   // Surface & Neutrals
-  static const background = Color(0xFFF7F8F6);   // Off-white Warm
+  static const background = Color(0xFFF8FAFC);   // Slate 50 ultra clean
   static const surface = Colors.white;
   static const border = Color(0xFFE2E8F0);       // Slate 200
+  static const borderLight = Color(0xFFF1F5F9);  // Slate 100
   static const borderDark = Color(0xFFCBD5E1);
 
   // Typography
   static const textPrimary = Color(0xFF0F172A);   // Slate 900
-  static const textSecondary = Color(0xFF475569); // Slate 600
+  static const textSecondary = Color(0xFF64748B); // Slate 500
   static const textMuted = Color(0xFF94A3B8);     // Slate 400
 
   // Status & Badges
@@ -24,9 +25,9 @@ class AppColors {
   static const statusError = Color(0xFFDC2626);
   static const statusWarning = Color(0xFFD97706);
   static const warnBg = Color(0xFFFFFBEB);       // Amber 50
-  static const warnFg = Color(0xFFD97706);       // Amber 600
-  static const successBg = Color(0xFFF0FDF4);    // Green 50
-  static const successFg = Color(0xFF16A34A);    // Green 600
+  static const warnFg = Color(0xFFB45309);       // Amber 700
+  static const successBg = Color(0xFFECFDF5);    // Emerald 50
+  static const successFg = Color(0xFF059669);    // Emerald 600
 }
 
 class AppConstants {

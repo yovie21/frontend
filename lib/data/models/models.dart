@@ -193,6 +193,7 @@ class PurchaseOrder {
   final int id;
   final String status;
   final double totalAmount;
+  final double paidAmount;
   final String? orderDate;
   final Map<String, dynamic>? supplier;
   final List<dynamic> items;
@@ -201,6 +202,7 @@ class PurchaseOrder {
     required this.id,
     required this.status,
     required this.totalAmount,
+    this.paidAmount = 0.0,
     this.orderDate,
     this.supplier,
     required this.items,
@@ -211,6 +213,7 @@ class PurchaseOrder {
       id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
       status: json['status'] ?? 'draft',
       totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
+      paidAmount: (json['paidAmount'] as num?)?.toDouble() ?? 0.0,
       orderDate: json['orderDate']?.toString(),
       supplier: json['supplier'],
       items: json['items'] is List ? json['items'] : [],

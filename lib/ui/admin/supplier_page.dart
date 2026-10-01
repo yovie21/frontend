@@ -94,36 +94,67 @@ class _SupplierPageState extends State<SupplierPage> {
         child: admin.isLoading
             ? const Center(child: CircularProgressIndicator())
             : admin.suppliers.isEmpty
-                ? const Center(child: Text('Belum ada supplier'))
+                ? _buildEmptyState()
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: admin.suppliers.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (ctx, i) {
                       final s = admin.suppliers[i];
-                      return ModernCard(
-                        padding: const EdgeInsets.all(12),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(color: AppColors.primary.withAlpha(20), borderRadius: BorderRadius.circular(12)),
-                            child: const Icon(Icons.business, color: AppColors.primary),
-                          ),
-                          title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('${s.contact ?? '-'} • ${s.phone ?? '-'}', style: const TextStyle(color: AppColors.textSecondary)),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(icon: const Icon(Icons.edit, size: 20, color: AppColors.primary), onPressed: () => _showForm(supplier: s)),
-                              IconButton(icon: const Icon(Icons.delete, size: 20, color: AppColors.statusError), onPressed: () => admin.deleteSupplier(s.id)),
-                            ],
-                          ),
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: const [BoxShadow(color: Color(0x040F172A), blurRadius: 10, offset: Offset(0, 4))],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(colors: [Color(0xFF0F3826), Color(0xFF1B5E3C)]),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Icon(Icons.business, color: Colors.white, size: 24),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(s.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF0F172A))),
+                                  const SizedBox(height: 4),
+                                  Text('${s.contact ?? '-'} · ${s.phone ?? '-'}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                                ],
+                              ),
+                            ),
+                            IconButton(icon: const Icon(Icons.edit, color: Color(0xFF0F3826)), onPressed: () => _showForm(supplier: s)),
+                            IconButton(icon: const Icon(Icons.delete, color: Color(0xFFDC2626)), onPressed: () => admin.deleteSupplier(s.id)),
+                          ],
                         ),
                       );
                     },
                   ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(24)),
+            child: const Icon(Icons.business_center_outlined, size: 48, color: Color(0xFF94A3B8)),
+          ),
+          const SizedBox(height: 16),
+          const Text('Belum ada supplier', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+        ],
       ),
     );
   }
