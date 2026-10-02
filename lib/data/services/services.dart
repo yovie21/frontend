@@ -195,4 +195,32 @@ class StockService {
   static Future<void> payPurchaseOrder(int id, double amount) async {
     await HttpClient.patch('/purchase_orders/$id', {'payAmount': amount});
   }
+
+  static Future<List<dynamic>> getStockHistory({int? productId, int limit = 100}) async {
+    final path = productId != null ? '/stock/history?productId=$productId&limit=$limit' : '/stock/history?limit=$limit';
+    final res = await HttpClient.get(path);
+    return res as List<dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> createSupplierReturn({
+    required int productId,
+    int? supplierId,
+    required int qty,
+    String? reason,
+    String? note,
+  }) async {
+    final res = await HttpClient.post('/stock/return', {
+      'productId': productId,
+      if (supplierId != null) 'supplierId': supplierId,
+      'qty': qty,
+      if (reason != null) 'reason': reason,
+      if (note != null) 'note': note,
+    });
+    return res as Map<String, dynamic>;
+  }
+
+  static Future<List<dynamic>> getSupplierReturns() async {
+    final res = await HttpClient.get('/stock/return');
+    return res as List<dynamic>;
+  }
 }

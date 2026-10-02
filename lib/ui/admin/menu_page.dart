@@ -9,6 +9,9 @@ import 'supplier_page.dart';
 import 'po_page.dart';
 import 'report_page.dart';
 import 'debt_page.dart';
+import 'barcode_label_page.dart';
+import '../gudang/stock_mutation_page.dart';
+import '../gudang/supplier_returns_page.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
@@ -153,6 +156,30 @@ class MenuPage extends StatelessWidget {
                 subtitle: 'Pemesanan barang masuk ke supplier',
                 page: const PoPage(),
               ),
+              _MenuItem(
+                icon: Icons.swap_vert_rounded,
+                iconBg: const Color(0xFFFEF3C7),
+                iconColor: const Color(0xFFD97706),
+                title: 'Kartu & Mutasi Stok',
+                subtitle: 'Riwayat lengkap barang masuk/keluar/opname',
+                page: const StockMutationPage(),
+              ),
+              _MenuItem(
+                icon: Icons.assignment_return_rounded,
+                iconBg: const Color(0xFFFEF2F2),
+                iconColor: const Color(0xFFDC2626),
+                title: 'Retur Supplier',
+                subtitle: 'Pengembalian barang rusak / kadaluarsa',
+                page: const SupplierReturnsPage(),
+              ),
+              _MenuItem(
+                icon: Icons.qr_code_2_rounded,
+                iconBg: const Color(0xFFECFDF5),
+                iconColor: const Color(0xFF059669),
+                title: 'Cetak Label Barcode & Rak',
+                subtitle: 'Generate & cetak label harga/barcode',
+                page: const BarcodeLabelPage(),
+              ),
             ], context),
             const SizedBox(height: 18),
           ],
@@ -183,6 +210,30 @@ class MenuPage extends StatelessWidget {
                 title: 'Satuan (UOM)',
                 subtitle: 'Daftar satuan kemasan barang',
                 page: const UomPage(),
+              ),
+              _MenuItem(
+                icon: Icons.swap_vert_rounded,
+                iconBg: const Color(0xFFFEF3C7),
+                iconColor: const Color(0xFFD97706),
+                title: 'Kartu & Mutasi Stok',
+                subtitle: 'Riwayat lengkap barang masuk/keluar/opname',
+                page: const StockMutationPage(),
+              ),
+              _MenuItem(
+                icon: Icons.assignment_return_rounded,
+                iconBg: const Color(0xFFFEF2F2),
+                iconColor: const Color(0xFFDC2626),
+                title: 'Retur Supplier',
+                subtitle: 'Pengembalian barang rusak / kadaluarsa',
+                page: const SupplierReturnsPage(),
+              ),
+              _MenuItem(
+                icon: Icons.qr_code_2_rounded,
+                iconBg: const Color(0xFFECFDF5),
+                iconColor: const Color(0xFF059669),
+                title: 'Cetak Label Barcode & Rak',
+                subtitle: 'Generate & cetak label harga/barcode',
+                page: const BarcodeLabelPage(),
               ),
             ], context),
             const SizedBox(height: 18),
