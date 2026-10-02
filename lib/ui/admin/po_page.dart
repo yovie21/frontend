@@ -258,7 +258,7 @@ class _PoPageState extends State<PoPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('PO #${po.id} · $name', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                  Text('${AppUtils.formatDate(po.orderDate)} · $name', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
@@ -295,14 +295,14 @@ class _PoPageState extends State<PoPage> {
                               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                             ),
                             Text(
-                              '${it['qty']} x Rp ${AppUtils.formatCurrency(it['unitPrice'])}',
+                              '${it['qty']} x Rp ${AppUtils.formatCurrency((it['unitPrice'] as num?)?.toInt() ?? 0)}',
                               style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
                             ),
                           ],
                         ),
                       ),
                       Text(
-                        'Rp ${AppUtils.formatCurrency((it['qty'] ?? 1) * (it['unitPrice'] ?? 0))}',
+                        'Rp ${AppUtils.formatCurrency(((it['qty'] as num?)?.toInt() ?? 1) * ((it['unitPrice'] as num?)?.toInt() ?? 0))}',
                         style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                     ],
@@ -371,7 +371,7 @@ class _PoPageState extends State<PoPage> {
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
                           onTap: () => _showDetail(po),
-                          title: Text('#${po.id} · $name', style: const TextStyle(fontWeight: FontWeight.w700)),
+                          title: Text('${AppUtils.formatDate(po.orderDate)} · $name', style: const TextStyle(fontWeight: FontWeight.w700)),
                           subtitle: Text(
                             '${po.status.toUpperCase()} · $itemCount barang · Rp ${AppUtils.formatCurrency(po.totalAmount)}',
                             style: TextStyle(color: _statusColor(po.status), fontSize: 13, fontWeight: FontWeight.w600),
