@@ -72,7 +72,8 @@ class AdminProvider extends ChangeNotifier {
   }
 
   // CATEGORIES
-  Future<void> fetchCategories() async {
+  Future<void> fetchCategories({bool forceRefresh = false}) async {
+    if (!forceRefresh && _categories.isNotEmpty) return;
     try {
       _categories = await CategoryService.getCategories();
       notifyListeners();
@@ -119,7 +120,8 @@ class AdminProvider extends ChangeNotifier {
   }
 
   // UOMS
-  Future<void> fetchUoms() async {
+  Future<void> fetchUoms({bool forceRefresh = false}) async {
+    if (!forceRefresh && _uoms.isNotEmpty) return;
     try {
       _uoms = await UomService.getUoms();
       notifyListeners();
@@ -216,7 +218,8 @@ class AdminProvider extends ChangeNotifier {
   }
 
   // SUPPLIERS
-  Future<void> fetchSuppliers() async {
+  Future<void> fetchSuppliers({bool forceRefresh = false}) async {
+    if (!forceRefresh && _suppliers.isNotEmpty) return;
     try {
       _suppliers.clear();
       _suppliers.addAll(await SupplierService.getSuppliers());

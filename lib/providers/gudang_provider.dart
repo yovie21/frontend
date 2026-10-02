@@ -17,7 +17,8 @@ class GudangProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<void> fetchProducts() async {
+  Future<void> fetchProducts({bool forceRefresh = false}) async {
+    if (!forceRefresh && _products.isNotEmpty) return;
     _isLoading = true;
     notifyListeners();
     try {

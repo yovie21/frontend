@@ -9,6 +9,7 @@ class KasirProvider extends ChangeNotifier {
   List<Sale> _salesHistory = [];
   bool _isLoading = false;
   String? _errorMessage;
+  bool _cartDirty = false;
 
   List<Product> get products => _products;
   List<Map<String, dynamic>> get cart => _cart;
@@ -18,7 +19,10 @@ class KasirProvider extends ChangeNotifier {
 
   double get subtotal => _cart.fold(0, (sum, item) => sum + ((item['price'] as double) * (item['qty'] as int)));
 
-  Future<void> fetchProducts({String? query}) async {
+  Future<void> fetchProducts({String? query, bool forceRefresh = false}) async {
+    if (!forceRefresh && _products.isNotEmpty && query == null) {
+      return;
+    }
     _isLoading = true;
     notifyListeners();
     try {
