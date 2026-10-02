@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants.dart';
 import '../../data/models/models.dart';
 import '../../providers/auth_provider.dart';
+import 'admin/dashboard_page.dart';
 import 'admin/product_page.dart';
 import 'gudang/stock_history_page.dart';
 import 'gudang/label_print_page.dart';
@@ -63,12 +64,14 @@ class _MainShellState extends State<MainShell> {
     switch (role) {
       case 'admin':
         return [
+          const DashboardPage(),
           const ProductPage(),
           const CategoryPage(),
           const MenuPage(),
         ];
       case 'gudang':
         return [
+          const DashboardPage(),
           const StockOpnamePage(),
           const MenuPage(),
         ];
@@ -86,6 +89,7 @@ class _MainShellState extends State<MainShell> {
     switch (role) {
       case 'admin':
         items = const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), activeIcon: Icon(Icons.inventory_2), label: 'Produk'),
           BottomNavigationBarItem(icon: Icon(Icons.category_outlined), activeIcon: Icon(Icons.category), label: 'Kategori'),
           BottomNavigationBarItem(icon: Icon(Icons.menu_outlined), activeIcon: Icon(Icons.menu), label: 'Menu'),
@@ -93,6 +97,7 @@ class _MainShellState extends State<MainShell> {
         break;
       case 'gudang':
         items = const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(Icons.warehouse_outlined), activeIcon: Icon(Icons.warehouse), label: 'Stok Opname'),
           BottomNavigationBarItem(icon: Icon(Icons.menu_outlined), activeIcon: Icon(Icons.menu), label: 'Menu'),
         ];

@@ -232,3 +232,10 @@ class StockServiceExt {
     return data['history'] ?? [];
   }
 }
+
+class DashboardService {
+  static Future<Map<String, dynamic>> getSummary() async {
+    final res = await HttpClient.get('/dashboard/summary');
+    return res as Map<String, dynamic>;
+  }
+}
