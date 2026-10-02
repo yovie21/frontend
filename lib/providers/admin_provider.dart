@@ -276,4 +276,44 @@ class AdminProvider extends ChangeNotifier {
       fetchUsers(),
     ]);
   }
+
+  Future<List<dynamic>> fetchStockHistory(int productId) async {
+    try {
+      final res = await _client.get('/api/stock/history?productId=$productId');
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data['history'] ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<List<dynamic>> fetchSupplierReturns() async {
+    try {
+      final res = await _client.get('/api/supplier_returns');
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body) as List<dynamic>;
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<bool> createSupplierReturn({
+    required int supplierId,
+    required int productId,
+    required int qty,
+    required String reason,
+  }) async {
+    try {
+      final res = await _client.post('/api/supplier_returns', body: {
+        'supplierId': supplierId,
+        'productId': productId,
+        'qty': qty,
+        'reason': reason,
+      });
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
 }

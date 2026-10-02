@@ -5,7 +5,8 @@ import '../../../core/constants.dart';
 import '../../../core/utils.dart';
 import '../../../data/dto/dto.dart';
 import '../../../data/models/models.dart';
-import '../../../providers/admin_provider.dart';
+import 'gudang/stock_history_page.dart';
+import 'gudang/label_print_page.dart';
 import '../widgets/camera_scanner_page.dart';
 import '../widgets/modern_widgets.dart';
 import '../widgets/confirm_dialog.dart';
@@ -557,6 +558,26 @@ class _ProductPageState extends State<ProductPage> {
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                         itemBuilder: (ctx) => [
                                           const PopupMenuItem(
+                                            value: 'history',
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.history_rounded, size: 18, color: Color(0xFF2563EB)),
+                                                SizedBox(width: 8),
+                                                Text('Kartu Stok', style: TextStyle(fontWeight: FontWeight.w600)),
+                                              ],
+                                            ),
+                                          ),
+                                          const PopupMenuItem(
+                                            value: 'label',
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.qr_code_2_rounded, size: 18, color: Color(0xFF059669)),
+                                                SizedBox(width: 8),
+                                                Text('Cetak Label', style: TextStyle(fontWeight: FontWeight.w600)),
+                                              ],
+                                            ),
+                                          ),
+                                          const PopupMenuItem(
                                             value: 'edit',
                                             child: Row(
                                               children: [
@@ -578,6 +599,12 @@ class _ProductPageState extends State<ProductPage> {
                                           ),
                                         ],
                                         onSelected: (val) async {
+                                          if (val == 'history') {
+                                            Navigator.push(context, MaterialPageRoute(builder: (_) => StockHistoryPage(productId: p.id, productName: p.name)));
+                                          }
+                                          if (val == 'label') {
+                                            Navigator.push(context, MaterialPageRoute(builder: (_) => LabelPrintPage(product: p)));
+                                          }
                                           if (val == 'edit') _showForm(product: p);
                                           if (val == 'delete') {
                                             final ok = await showConfirmDialog(
