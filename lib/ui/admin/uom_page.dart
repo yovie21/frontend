@@ -26,6 +26,7 @@ class _UomPageState extends State<UomPage> {
   void _showForm({Uom? uom}) {
     final nameCtrl = TextEditingController(text: uom?.name ?? '');
     final symbolCtrl = TextEditingController(text: uom?.symbol ?? '');
+    bool isSaving = false;
 
     const quickUnits = [
       ('PCS', 'Pieces / Butir'),
@@ -236,23 +237,28 @@ class _UomPageState extends State<UomPage> {
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    onPressed: () async {
-                      final name = nameCtrl.text.trim();
-                      final symbol = symbolCtrl.text.trim().toUpperCase();
-                      if (name.isEmpty) return;
+                    onPressed: isSaving
+                        ? null
+                        : () async {
+                            final name = nameCtrl.text.trim();
+                            final symbol = symbolCtrl.text.trim().toUpperCase();
+                            if (name.isEmpty) return;
+                            setM(() => isSaving = true);
 
-                      final admin = context.read<AdminProvider>();
-                      Navigator.pop(ctx);
-                      bool ok = uom == null
-                          ? await admin.createUom(name, symbol: symbol.isEmpty ? null : symbol)
-                          : await admin.updateUom(uom.id, name, symbol: symbol.isEmpty ? null : symbol);
-                      if (mounted && !ok) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(backgroundColor: const Color(0xFFDC2626), content: Text(admin.errorMessage ?? 'Gagal menyimpan satuan')),
-                        );
-                      }
-                    },
-                    child: const Text('Simpan Satuan', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
+                            final admin = context.read<AdminProvider>();
+                            Navigator.pop(ctx);
+                            bool ok = uom == null
+                                ? await admin.createUom(name, symbol: symbol.isEmpty ? null : symbol)
+                                : await admin.updateUom(uom.id, name, symbol: symbol.isEmpty ? null : symbol);
+                            if (mounted && !ok) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(backgroundColor: const Color(0xFFDC2626), content: Text(admin.errorMessage ?? 'Gagal menyimpan satuan')),
+                              );
+                            }
+                          },
+                    child: isSaving
+                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Simpan Satuan', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
                   ),
                 ],
               ),

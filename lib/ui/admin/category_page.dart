@@ -27,6 +27,7 @@ class _CategoryPageState extends State<CategoryPage> {
     final nameCtrl = TextEditingController(text: category?.name ?? '');
     final admin = context.read<AdminProvider>();
     int? parentId = category?.parentId;
+    bool isSaving = false;
     final candidates = admin.categories.where((c) => c.id != category?.id).toList();
 
     const quickSuggestions = [
@@ -227,20 +228,25 @@ class _CategoryPageState extends State<CategoryPage> {
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    onPressed: () async {
-                      final name = nameCtrl.text.trim();
-                      if (name.isEmpty) return;
-                      Navigator.pop(ctx);
-                      bool ok = category == null
-                          ? await admin.createCategory(name, parentId: parentId)
-                          : await admin.updateCategory(category.id, name, parentId: parentId);
-                      if (mounted && !ok) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(backgroundColor: const Color(0xFFDC2626), content: Text(admin.errorMessage ?? 'Gagal menyimpan kategori')),
-                        );
-                      }
-                    },
-                    child: const Text('Simpan Kategori', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
+                    onPressed: isSaving
+                        ? null
+                        : () async {
+                            final name = nameCtrl.text.trim();
+                            if (name.isEmpty) return;
+                            setM(() => isSaving = true);
+                            Navigator.pop(ctx);
+                            bool ok = category == null
+                                ? await admin.createCategory(name, parentId: parentId)
+                                : await admin.updateCategory(category.id, name, parentId: parentId);
+                            if (mounted && !ok) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(backgroundColor: const Color(0xFFDC2626), content: Text(admin.errorMessage ?? 'Gagal menyimpan kategori')),
+                              );
+                            }
+                          },
+                    child: isSaving
+                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Simpan Kategori', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
                   ),
                 ],
               ),

@@ -26,6 +26,7 @@ class _UserPageState extends State<UserPage> {
     final usernameCtrl = TextEditingController(text: user?.username ?? '');
     final passwordCtrl = TextEditingController();
     String selectedRole = user?.role ?? 'kasir';
+    bool isSaving = false;
 
     showDialog(
       context: context,
@@ -55,24 +56,30 @@ class _UserPageState extends State<UserPage> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
             ModernButton(
-              text: 'Simpan',
-              onPressed: () async {
-                final u = usernameCtrl.text.trim();
-                final p = passwordCtrl.text;
-                if (u.isEmpty) return;
-                if (user == null && p.isEmpty) return;
+                          text: 'Simpan',
+                          isLoading: isSaving,
+                          onPressed: isSaving ? null : () async {
+                            final u = usernameCtrl.text.trim();
+                            final p = passwordCtrl.text;
+                            if (u.isEmpty) return;
+                            if (user == null && p.isEmpty) return;
+                            setModalState(() => isSaving = true);
 
-                final admin = context.read<AdminProvider>();
-                final ok = user == null
-                    ? await admin.createUser(u, p, selectedRole)
-                    : await admin.updateUser(user.id, username: u, password: p.isEmpty ? null : p, role: selectedRole);
-                if (!ctx.mounted) return;
-                Navigator.pop(ctx);
-                if (!ok && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: ${admin.errorMessage}')));
-                }
-              },
-            ),
+                            final admin = context.read<AdminProvider>();
+                            final ok = user == null
+                                ? await admin.createUser(u, p, selectedRole)
+                                : await admin.updateUser(user.id, username: u, password: p.isEmpty ? null : p, role: selectedRole);
+                            if (!ctx.mounted) return;
+                            if (ok) {
+                              Navigator.pop(ctx);
+                            } else {
+                              setModalState(() => isSaving = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(backgroundColor: const Color(0xFFDC2626), content: Text('Gagal: ${admin.errorMessage}')),
+                              );
+                            }
+                          },
+                        ),
           ],
         ),
       ),
@@ -124,7 +131,7 @@ class _UserPageState extends State<UserPage> {
                                     title: 'Hapus Pengguna',
                                     message: 'Yakin ingin menghapus "${u.username}"? Data tidak bisa dikembalikan.',
                                   );
-                                  if (ok && context.mounted) admin.deleteUser(u.id);
+                                  if (ok && context.mounted) context.read<AdminProvider>().deleteUser(u.id);
                                 },
                               ),
                             ],

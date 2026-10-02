@@ -29,21 +29,24 @@ class _SupplierPageState extends State<SupplierPage> {
     final emailCtrl = TextEditingController(text: supplier?.email ?? '');
     final addressCtrl = TextEditingController(text: supplier?.address ?? '');
 
+    bool isSaving = false;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom + 24, left: 24, right: 24, top: 24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setM) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom + 24, left: 24, right: 24, top: 24),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               Text(supplier == null ? 'Tambah Supplier' : 'Edit Supplier', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
               const SizedBox(height: 24),
               TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Nama Supplier *', prefixIcon: Icon(Icons.business))),
@@ -58,8 +61,10 @@ class _SupplierPageState extends State<SupplierPage> {
               const SizedBox(height: 24),
               ModernButton(
                 text: 'Simpan Supplier',
-                onPressed: () async {
+                isLoading: isSaving,
+                onPressed: isSaving ? null : () async {
                   if (nameCtrl.text.trim().isEmpty) return;
+                  setM(() => isSaving = true);
                   final data = {
                     'name': nameCtrl.text.trim(),
                     'contact': contactCtrl.text.trim(),
@@ -71,10 +76,18 @@ class _SupplierPageState extends State<SupplierPage> {
                   bool success = supplier == null
                       ? await admin.createSupplier(data)
                       : await admin.updateSupplier(supplier.id, data);
-                  if (mounted && success) Navigator.pop(ctx);
+                  if (!ctx.mounted) return;
+                  if (success) Navigator.pop(ctx);
+                  else {
+                    setM(() => isSaving = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(backgroundColor: const Color(0xFFDC2626), content: Text(admin.errorMessage ?? 'Gagal menyimpan')),
+                    );
+                  }
                 },
               ),
             ],
+            ),
           ),
         ),
       ),
@@ -141,7 +154,7 @@ class _SupplierPageState extends State<SupplierPage> {
                                   title: 'Hapus Supplier',
                                   message: 'Yakin ingin menghapus "${s.name}"? Data tidak bisa dikembalikan.',
                                 );
-                                if (ok && context.mounted) admin.deleteSupplier(s.id);
+                                if (ok && context.mounted) context.read<AdminProvider>().deleteSupplier(s.id);
                               },
                             ),
                           ],

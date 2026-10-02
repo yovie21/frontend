@@ -21,7 +21,8 @@ class AdminProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   // PRODUCTS
-  Future<void> fetchProducts({String? query}) async {
+  Future<void> fetchProducts({String? query, bool forceRefresh = false}) async {
+    if (!forceRefresh && _products.isNotEmpty && query == null) return;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -38,7 +39,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> createProduct(ProductDto dto) async {
     try {
       await ProductService.createProduct(dto);
-      await fetchProducts();
+      await fetchProducts(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -50,7 +51,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> updateProduct(int id, ProductDto dto) async {
     try {
       await ProductService.updateProduct(id, dto);
-      await fetchProducts();
+      await fetchProducts(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -62,7 +63,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> deleteProduct(int id) async {
     try {
       await ProductService.deleteProduct(id);
-      await fetchProducts();
+      await fetchProducts(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -86,7 +87,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> createCategory(String name, {int? parentId}) async {
     try {
       await CategoryService.createCategory(name, parentId: parentId);
-      await fetchCategories();
+      await fetchCategories(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -98,7 +99,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> updateCategory(int id, String name, {int? parentId}) async {
     try {
       await CategoryService.updateCategory(id, name, parentId: parentId);
-      await fetchCategories();
+      await fetchCategories(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -110,7 +111,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> deleteCategory(int id) async {
     try {
       await CategoryService.deleteCategory(id);
-      await fetchCategories();
+      await fetchCategories(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -134,7 +135,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> createUom(String name, {String? symbol}) async {
     try {
       await UomService.createUom(name, symbol: symbol);
-      await fetchUoms();
+      await fetchUoms(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -146,7 +147,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> updateUom(int id, String name, {String? symbol}) async {
     try {
       await UomService.updateUom(id, name, symbol: symbol);
-      await fetchUoms();
+      await fetchUoms(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -158,7 +159,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> deleteUom(int id) async {
     try {
       await UomService.deleteUom(id);
-      await fetchUoms();
+      await fetchUoms(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -233,7 +234,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> createSupplier(Map<String, dynamic> data) async {
     try {
       await SupplierService.createSupplier(data);
-      await fetchSuppliers();
+      await fetchSuppliers(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -245,7 +246,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> updateSupplier(int id, Map<String, dynamic> data) async {
     try {
       await SupplierService.updateSupplier(id, data);
-      await fetchSuppliers();
+      await fetchSuppliers(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -257,7 +258,7 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> deleteSupplier(int id) async {
     try {
       await SupplierService.deleteSupplier(id);
-      await fetchSuppliers();
+      await fetchSuppliers(forceRefresh: true);
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');

@@ -54,6 +54,8 @@ class _ProductPageState extends State<ProductPage> {
       }
     }
 
+    bool isSaving = false;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -199,8 +201,10 @@ class _ProductPageState extends State<ProductPage> {
                 const SizedBox(height: 24),
                 ModernButton(
                   text: 'Simpan Produk',
-                  onPressed: () async {
+                  isLoading: isSaving,
+                  onPressed: isSaving ? null : () async {
                     if (namaCtrl.text.isEmpty || skuCtrl.text.isEmpty || priceCtrl.text.isEmpty) return;
+                    setM(() => isSaving = true);
                     final uomList = <Map<String, dynamic>>[];
                     for (var u in extraUoms) {
                       final f = int.tryParse(u['factorCtrl'].text) ?? 1;
@@ -229,6 +233,12 @@ class _ProductPageState extends State<ProductPage> {
                     bool success = pId == null ? await admin.createProduct(dto) : await admin.updateProduct(pId, dto);
                     if (!ctx.mounted) return;
                     if (success) Navigator.pop(ctx);
+                    else {
+                      setM(() => isSaving = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(backgroundColor: const Color(0xFFDC2626), content: Text(admin.errorMessage ?? 'Gagal menyimpan')),
+                      );
+                    }
                   },
                 ),
               ],
@@ -575,7 +585,7 @@ class _ProductPageState extends State<ProductPage> {
                                               title: 'Hapus Produk',
                                               message: 'Yakin ingin menghapus "${p.name}"? Data tidak bisa dikembalikan.',
                                             );
-                                            if (ok && context.mounted) admin.deleteProduct(p.id);
+                                            if (ok && context.mounted) context.read<AdminProvider>().deleteProduct(p.id);
                                           }
                                         },
                                       ),
