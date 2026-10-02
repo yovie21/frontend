@@ -34,7 +34,9 @@ class _SalesPageState extends State<SalesPage> {
     try {
       final cats = await CategoryService.getCategories();
       if (mounted) setState(() => _categories = cats);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Category load error: $e');
+    }
   }
 
   Future<void> _openCameraScanner() async {

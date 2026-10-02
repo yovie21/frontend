@@ -28,7 +28,9 @@ class _ReceiptPageState extends State<ReceiptPage> {
     Map<String, dynamic>? detail;
     try {
       detail = await SaleService.getSaleDetail(s.id);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Receipt detail error: $e');
+    }
 
     if (!mounted) return;
     showModalBottomSheet(

@@ -233,7 +233,7 @@ class _DebtPageState extends State<DebtPage> {
                                   ),
                                   InkWell(
                                     borderRadius: BorderRadius.circular(12),
-                                    onTap: () => _pay(r['id'] as int, unpaid),
+                                    onTap: () => _pay((r['id'] as num).toInt(), unpaid),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                       decoration: BoxDecoration(
