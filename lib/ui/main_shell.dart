@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants.dart';
 import '../../data/models/models.dart';
 import '../../providers/auth_provider.dart';
+import 'admin/product_page.dart';
 import 'gudang/stock_history_page.dart';
 import 'gudang/label_print_page.dart';
 import 'admin/category_page.dart';

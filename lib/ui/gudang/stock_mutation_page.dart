@@ -37,7 +37,7 @@ class _StockMutationPageState extends State<StockMutationPage> {
       if (admin.products.isEmpty) {
         await admin.fetchProducts();
       }
-      final txs = await StockService.getStockHistory(productId: _selectedProductId);
+      final txs = await StockServiceExt.getStockHistory(_selectedProductId!);
       if (mounted) {
         setState(() {
           _transactions = txs;

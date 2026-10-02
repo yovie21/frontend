@@ -196,31 +196,39 @@ class StockService {
     await HttpClient.patch('/purchase_orders/$id', {'payAmount': amount});
   }
 
-  static Future<List<dynamic>> getStockHistory({int? productId, int limit = 100}) async {
-    final path = productId != null ? '/stock/history?productId=$productId&limit=$limit' : '/stock/history?limit=$limit';
-    final res = await HttpClient.get(path);
+  static Future<List<dynamic>> getStockHistory(int productId) async {
+    final res = await HttpClient.get('/stock/history?productId=$productId');
+    final data = res as Map<String, dynamic>;
+    return data['history'] ?? [];
+  }
+}
+
+class SupplierReturnService {
+  static Future<List<dynamic>> getSupplierReturns() async {
+    final res = await HttpClient.get('/supplier_returns');
     return res as List<dynamic>;
   }
 
   static Future<Map<String, dynamic>> createSupplierReturn({
+    required int supplierId,
     required int productId,
-    int? supplierId,
     required int qty,
-    String? reason,
-    String? note,
+    required String reason,
   }) async {
-    final res = await HttpClient.post('/stock/return', {
+    final res = await HttpClient.post('/supplier_returns', {
+      'supplierId': supplierId,
       'productId': productId,
-      if (supplierId != null) 'supplierId': supplierId,
       'qty': qty,
-      if (reason != null) 'reason': reason,
-      if (note != null) 'note': note,
+      'reason': reason,
     });
     return res as Map<String, dynamic>;
   }
+}
 
-  static Future<List<dynamic>> getSupplierReturns() async {
-    final res = await HttpClient.get('/stock/return');
-    return res as List<dynamic>;
+class StockServiceExt {
+  static Future<List<dynamic>> getStockHistory(int productId) async {
+    final res = await HttpClient.get('/stock/history?productId=$productId');
+    final data = res as Map<String, dynamic>;
+    return data['history'] ?? [];
   }
 }

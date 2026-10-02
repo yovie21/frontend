@@ -31,7 +31,7 @@ class _SupplierReturnsPageState extends State<SupplierReturnsPage> {
       _errorMessage = null;
     });
     try {
-      final ret = await StockService.getSupplierReturns();
+      final ret = await SupplierReturnService.getSupplierReturns();
       if (mounted) {
         setState(() {
           _returns = ret;
@@ -105,7 +105,7 @@ class _SupplierReturnsPageState extends State<SupplierReturnsPage> {
                     child: DropdownButton<int?>(
                       value: selectedProductId,
                       isExpanded: true,
-                      items: products.map((p) => DropdownMenuItem(value: p.id, child: Text('${p.name} (${p.stock} ${p.uom?.symbol ?? 'pcs'})'))).toList(),
+                      items: products.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
                       onChanged: (v) => setM(() => selectedProductId = v),
                     ),
                   ),
@@ -168,12 +168,11 @@ class _SupplierReturnsPageState extends State<SupplierReturnsPage> {
                           if (qty <= 0) return;
                           setM(() => isSaving = true);
                           try {
-                            await StockService.createSupplierReturn(
+                            await SupplierReturnService.createSupplierReturn(
                               productId: selectedProductId!,
-                              supplierId: selectedSupplierId,
+                              supplierId: selectedSupplierId!,
                               qty: qty,
                               reason: reasonCtrl.text.trim(),
-                              note: noteCtrl.text.trim(),
                             );
                             if (ctx.mounted) Navigator.pop(ctx);
                             await _loadReturns();
