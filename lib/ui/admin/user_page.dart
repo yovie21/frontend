@@ -4,6 +4,7 @@ import '../../../core/constants.dart';
 import '../../../data/models/models.dart';
 import '../../../providers/admin_provider.dart';
 import '../widgets/modern_widgets.dart';
+import '../widgets/confirm_dialog.dart';
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});
@@ -115,7 +116,17 @@ class _UserPageState extends State<UserPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(icon: const Icon(Icons.edit, size: 20, color: AppColors.primary), onPressed: () => _showForm(user: u)),
-                              IconButton(icon: const Icon(Icons.delete, size: 20, color: AppColors.statusError), onPressed: () => admin.deleteUser(u.id)),
+                              IconButton(
+                                icon: const Icon(Icons.delete, size: 20, color: AppColors.statusError),
+                                onPressed: () async {
+                                  final ok = await showConfirmDialog(
+                                    context,
+                                    title: 'Hapus Pengguna',
+                                    message: 'Yakin ingin menghapus "${u.username}"? Data tidak bisa dikembalikan.',
+                                  );
+                                  if (ok && context.mounted) admin.deleteUser(u.id);
+                                },
+                              ),
                             ],
                           ),
                         ),

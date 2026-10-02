@@ -8,6 +8,7 @@ import '../../../data/models/models.dart';
 import '../../../providers/admin_provider.dart';
 import '../widgets/camera_scanner_page.dart';
 import '../widgets/modern_widgets.dart';
+import '../widgets/confirm_dialog.dart';
 
 class ProductPage extends StatefulWidget {
   const ProductPage({super.key});
@@ -566,9 +567,16 @@ class _ProductPageState extends State<ProductPage> {
                                             ),
                                           ),
                                         ],
-                                        onSelected: (val) {
+                                        onSelected: (val) async {
                                           if (val == 'edit') _showForm(product: p);
-                                          if (val == 'delete') admin.deleteProduct(p.id);
+                                          if (val == 'delete') {
+                                            final ok = await showConfirmDialog(
+                                              context,
+                                              title: 'Hapus Produk',
+                                              message: 'Yakin ingin menghapus "${p.name}"? Data tidak bisa dikembalikan.',
+                                            );
+                                            if (ok && context.mounted) admin.deleteProduct(p.id);
+                                          }
                                         },
                                       ),
                                     ],

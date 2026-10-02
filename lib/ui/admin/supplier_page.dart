@@ -4,6 +4,7 @@ import '../../../core/constants.dart';
 import '../../../data/models/models.dart';
 import '../../../providers/admin_provider.dart';
 import '../widgets/modern_widgets.dart';
+import '../widgets/confirm_dialog.dart';
 
 class SupplierPage extends StatefulWidget {
   const SupplierPage({super.key});
@@ -132,7 +133,17 @@ class _SupplierPageState extends State<SupplierPage> {
                               ),
                             ),
                             IconButton(icon: const Icon(Icons.edit, color: Color(0xFF0F3826)), onPressed: () => _showForm(supplier: s)),
-                            IconButton(icon: const Icon(Icons.delete, color: Color(0xFFDC2626)), onPressed: () => admin.deleteSupplier(s.id)),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Color(0xFFDC2626)),
+                              onPressed: () async {
+                                final ok = await showConfirmDialog(
+                                  context,
+                                  title: 'Hapus Supplier',
+                                  message: 'Yakin ingin menghapus "${s.name}"? Data tidak bisa dikembalikan.',
+                                );
+                                if (ok && context.mounted) admin.deleteSupplier(s.id);
+                              },
+                            ),
                           ],
                         ),
                       );
