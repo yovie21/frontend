@@ -19,8 +19,11 @@ class GudangProvider extends ChangeNotifier {
 
   Future<void> fetchProducts({bool forceRefresh = false}) async {
     if (!forceRefresh && _products.isNotEmpty) return;
-    _isLoading = true;
-    notifyListeners();
+    if (_products.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
+    _errorMessage = null;
     try {
       _products = await ProductService.getProducts();
     } catch (e) {
@@ -32,8 +35,11 @@ class GudangProvider extends ChangeNotifier {
   }
 
   Future<void> fetchStockReport() async {
-    _isLoading = true;
-    notifyListeners();
+    if (_lowStockProducts.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
+    _errorMessage = null;
     try {
       _lowStockProducts = await StockService.getLowStockReport();
     } catch (e) {
@@ -58,8 +64,11 @@ class GudangProvider extends ChangeNotifier {
   }
 
   Future<void> fetchPurchaseOrders() async {
-    _isLoading = true;
-    notifyListeners();
+    if (_purchaseOrders.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
+    _errorMessage = null;
     try {
       final res = await Future.wait([
         StockService.getPurchaseOrders(),

@@ -45,99 +45,110 @@ class _PromoPageState extends State<PromoPage> {
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 20, right: 20, top: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(promo == null ? 'Buat Promo Baru' : 'Edit Promo', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary)),
-            const SizedBox(height: 16),
-            TextField(controller: nameCtrl, decoration: InputDecoration(hintText: 'Nama Promo', labelText: 'Nama Promo', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
-            const SizedBox(height: 12),
-            Row(
+      builder: (ctx) {
+        bool isSaving = false;
+        return StatefulBuilder(
+          builder: (ctx, setM) => Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 20, right: 20, top: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(child: TextField(controller: percentCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(hintText: '0', labelText: 'Diskon %', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))))),
-                const SizedBox(width: 12),
-                Expanded(child: TextField(controller: amountCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(hintText: '0', labelText: 'Nominal Rp', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))))),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(context: ctx, initialDate: DateTime.parse(startDate), firstDate: DateTime(2020), lastDate: DateTime(2099));
-                      if (picked != null) startDate = picked.toIso8601String().split('T')[0];
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(border: Border.all(color: AppColors.border), borderRadius: BorderRadius.circular(12)),
-                      child: Text(startDate, style: const TextStyle(fontSize: 13)),
+                Text(promo == null ? 'Buat Promo Baru' : 'Edit Promo', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                const SizedBox(height: 16),
+                TextField(controller: nameCtrl, decoration: InputDecoration(hintText: 'Nama Promo', labelText: 'Nama Promo', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)))),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: TextField(controller: percentCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(hintText: '0', labelText: 'Diskon %', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))))),
+                    const SizedBox(width: 12),
+                    Expanded(child: TextField(controller: amountCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(hintText: '0', labelText: 'Nominal Rp', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))))),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: isSaving ? null : () async {
+                          final picked = await showDatePicker(context: ctx, initialDate: DateTime.parse(startDate), firstDate: DateTime(2020), lastDate: DateTime(2099));
+                          if (picked != null) setM(() => startDate = picked.toIso8601String().split('T')[0]);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(border: Border.all(color: AppColors.border), borderRadius: BorderRadius.circular(12)),
+                          child: Text(startDate, style: const TextStyle(fontSize: 13)),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(context: ctx, initialDate: DateTime.parse(endDate), firstDate: DateTime(2020), lastDate: DateTime(2099));
-                      if (picked != null) endDate = picked.toIso8601String().split('T')[0];
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(border: Border.all(color: AppColors.border), borderRadius: BorderRadius.circular(12)),
-                      child: Text(endDate, style: const TextStyle(fontSize: 13)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: InkWell(
+                        onTap: isSaving ? null : () async {
+                          final picked = await showDatePicker(context: ctx, initialDate: DateTime.parse(endDate), firstDate: DateTime(2020), lastDate: DateTime(2099));
+                          if (picked != null) setM(() => endDate = picked.toIso8601String().split('T')[0]);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(border: Border.all(color: AppColors.border), borderRadius: BorderRadius.circular(12)),
+                          child: Text(endDate, style: const TextStyle(fontSize: 13)),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(onPressed: isSaving ? null : Navigator.of(ctx).pop, child: const Text('Batal')),
+                    ),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                setM(() => isSaving = true);
+                                try {
+                                  if (promo == null) {
+                                    await PromoService.createPromo(
+                                      name: nameCtrl.text,
+                                      percent: percentCtrl.text.isEmpty ? null : double.parse(percentCtrl.text),
+                                      amount: amountCtrl.text.isEmpty ? null : double.parse(amountCtrl.text),
+                                      startDate: startDate,
+                                      endDate: endDate,
+                                    );
+                                  } else {
+                                    await PromoService.updatePromo(
+                                      promo['id'],
+                                      name: nameCtrl.text,
+                                      percent: percentCtrl.text.isEmpty ? null : double.parse(percentCtrl.text),
+                                      amount: amountCtrl.text.isEmpty ? null : double.parse(amountCtrl.text),
+                                      startDate: startDate,
+                                      endDate: endDate,
+                                    );
+                                  }
+                                  if (mounted) {
+                                    Navigator.pop(ctx);
+                                    _load();
+                                  }
+                                } catch (e) {
+                                  setM(() => isSaving = false);
+                                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                }
+                              },
+                        child: isSaving
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Text('Simpan'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(onPressed: Navigator.of(ctx).pop, child: const Text('Batal')),
-                ),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () async {
-                      try {
-                        if (promo == null) {
-                          await PromoService.createPromo(
-                            name: nameCtrl.text,
-                            percent: percentCtrl.text.isEmpty ? null : double.parse(percentCtrl.text),
-                            amount: amountCtrl.text.isEmpty ? null : double.parse(amountCtrl.text),
-                            startDate: startDate,
-                            endDate: endDate,
-                          );
-                        } else {
-                          await PromoService.updatePromo(
-                            promo['id'],
-                            name: nameCtrl.text,
-                            percent: percentCtrl.text.isEmpty ? null : double.parse(percentCtrl.text),
-                            amount: amountCtrl.text.isEmpty ? null : double.parse(amountCtrl.text),
-                            startDate: startDate,
-                            endDate: endDate,
-                          );
-                        }
-                        if (mounted) {
-                          Navigator.pop(ctx);
-                          _load();
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Error: $e')));
-                      }
-                    },
-                    child: const Text('Simpan'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -204,11 +215,14 @@ class _PromoPageState extends State<PromoPage> {
                               OutlinedButton.icon(
                                 onPressed: () async {
                                   if (await showDialog(context: context, builder: (ctx) => AlertDialog(title: const Text('Hapus Promo?'), actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')), TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Hapus'))])) == true) {
+                                    setState(() {
+                                      promos.removeWhere((item) => item['id'] == p['id']);
+                                    });
                                     try {
                                       await PromoService.deletePromo(p['id']);
-                                      _load();
                                     } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                      _load();
+                                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                                     }
                                   }
                                 },

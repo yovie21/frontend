@@ -31,7 +31,10 @@ class _CashReconcilePageState extends State<CashReconcilePage> {
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool background = false}) async {
+    if (!background) {
+      setState(() => loading = true);
+    }
     try {
       final r = await CashService.getReconcile(today);
       if (!mounted) return;
@@ -52,7 +55,7 @@ class _CashReconcilePageState extends State<CashReconcilePage> {
       await CashService.saveReconcile(today, n, note: note.text.trim());
       counted.clear();
       note.clear();
-      await _load();
+      await _load(background: true);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
@@ -85,7 +88,12 @@ class _CashReconcilePageState extends State<CashReconcilePage> {
                         TextField(controller: counted, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Uang fisik dihitung')),
                         TextField(controller: note, decoration: const InputDecoration(labelText: 'Catatan (opsional)')),
                         const SizedBox(height: 12),
-                        FilledButton(onPressed: saving ? null : _save, child: Text(saving ? 'Menyimpan...' : 'Simpan selisih')),
+                        FilledButton(
+                          onPressed: saving ? null : _save,
+                          child: saving
+                              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : const Text('Simpan selisih'),
+                        ),
                       ],
                     ),
                   ),

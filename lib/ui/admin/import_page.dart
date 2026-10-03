@@ -79,7 +79,12 @@ class _ImportPageState extends State<ImportPage> {
             ),
           ),
           const SizedBox(height: 12),
-          FilledButton(onPressed: saving ? null : _save, child: Text(saving ? 'Mengunggah...' : 'Import')),
+          FilledButton(
+            onPressed: saving ? null : _save,
+            child: saving
+                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text('Import'),
+          ),
           if (result != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(result!)),
         ],
       ),

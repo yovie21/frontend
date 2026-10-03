@@ -23,9 +23,11 @@ class AdminProvider extends ChangeNotifier {
   // PRODUCTS
   Future<void> fetchProducts({String? query, bool forceRefresh = false}) async {
     if (!forceRefresh && _products.isNotEmpty && query == null) return;
-    _isLoading = true;
+    if (_products.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
     _errorMessage = null;
-    notifyListeners();
     try {
       _products = await ProductService.getProducts(query: query);
     } catch (e) {
@@ -170,8 +172,11 @@ class AdminProvider extends ChangeNotifier {
 
   // USERS
   Future<void> fetchUsers() async {
-    _isLoading = true;
-    notifyListeners();
+    if (_users.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
+    _errorMessage = null;
     try {
       _users = await UserService.getUsers();
     } catch (e) {

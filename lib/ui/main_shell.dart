@@ -4,16 +4,11 @@ import '../../core/constants.dart';
 import '../../data/models/models.dart';
 import '../../providers/auth_provider.dart';
 import 'admin/dashboard_page.dart';
-import 'admin/promo_page.dart';
-import 'admin/analytics_page.dart';
 import 'admin/product_page.dart';
-import 'gudang/stock_history_page.dart';
-import 'gudang/label_print_page.dart';
 import 'admin/category_page.dart';
 import 'kasir/sales_page.dart';
 import 'kasir/receipt_page.dart';
 import 'gudang/stock_opname_page.dart';
-import 'gudang/stock_report_page.dart';
 import 'admin/menu_page.dart';
 import 'auth/login_page.dart';
 

@@ -25,50 +25,62 @@ class _StockOpnamePageState extends State<StockOpnamePage> {
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Adjust Stok - $name', style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Stok Saat Ini: $currentStock', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: qtyCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Perubahan Stok (+/-)', prefixIcon: Icon(Icons.compare_arrows)),
+      builder: (ctx) {
+        bool isSaving = false;
+        return StatefulBuilder(
+          builder: (ctx, setM) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text('Adjust Stok - $name', style: const TextStyle(fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Stok Saat Ini: $currentStock', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: qtyCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Perubahan Stok (+/-)', prefixIcon: Icon(Icons.compare_arrows)),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: noteCtrl,
+                  decoration: const InputDecoration(labelText: 'Catatan Penyesuaian', prefixIcon: Icon(Icons.edit_note)),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: noteCtrl,
-              decoration: const InputDecoration(labelText: 'Catatan Penyesuaian', prefixIcon: Icon(Icons.edit_note)),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
-          ModernButton(
-            text: 'Simpan',
-            onPressed: () async {
-              final qty = int.tryParse(qtyCtrl.text) ?? 0;
-              if (qty == 0) return;
+            actions: [
+              TextButton(
+                onPressed: isSaving ? null : () => Navigator.pop(ctx),
+                child: const Text('Batal'),
+              ),
+              ModernButton(
+                text: 'Simpan',
+                isLoading: isSaving,
+                onPressed: isSaving
+                    ? null
+                    : () async {
+                        final qty = int.tryParse(qtyCtrl.text) ?? 0;
+                        if (qty == 0) return;
 
-              final gudang = context.read<GudangProvider>();
-              final ok = await gudang.adjustStock(productId, qty, note: noteCtrl.text.trim());
+                        setM(() => isSaving = true);
+                        final gudang = context.read<GudangProvider>();
+                        final ok = await gudang.adjustStock(productId, qty, note: noteCtrl.text.trim());
 
-              if (mounted) {
-                Navigator.pop(ctx);
-                if (ok) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stok berhasil disesuaikan')));
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: ${gudang.errorMessage}')));
-                }
-              }
-            },
+                        if (mounted) {
+                          Navigator.pop(ctx);
+                          if (ok) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stok berhasil disesuaikan')));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: ${gudang.errorMessage}')));
+                          }
+                        }
+                      },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
