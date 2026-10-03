@@ -51,14 +51,30 @@ class _SalesPageState extends State<SalesPage> {
     }
   }
 
-  void _scanBarcode(String code) {
+  Future<void> _scanBarcode(String code) async {
     final cleanCode = code.trim();
     if (cleanCode.isEmpty) return;
 
     final kasir = context.read<KasirProvider>();
-    final p = kasir.products
+    Product? p = kasir.products
         .where((e) => (e.barcode ?? '').trim() == cleanCode || e.sku.trim() == cleanCode)
         .firstOrNull;
+
+    // Jika tidak ada di cache lokal, cari langsung ke server
+    if (p == null) {
+      try {
+        final serverProducts = await ProductService.getProducts(query: cleanCode);
+        p = serverProducts
+            .where((e) => (e.barcode ?? '').trim() == cleanCode || e.sku.trim() == cleanCode)
+            .firstOrNull ?? (serverProducts.isNotEmpty ? serverProducts.first : null);
+        if (p != null) {
+          await kasir.fetchProducts(forceRefresh: true);
+        }
+      } catch (_) {}
+    }
+
+    if (!mounted) return;
+
     if (p != null) {
       if (p.productUoms != null && p.productUoms!.isNotEmpty) {
         _showUomSelectorModal(p);
@@ -682,6 +698,18 @@ class _SalesPageState extends State<SalesPage> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF0F172A)),
+            tooltip: 'Tarik data terbaru',
+            onPressed: () {
+              context.read<KasirProvider>().fetchProducts(forceRefresh: true);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Memperbarui data produk...'), duration: Duration(milliseconds: 800)),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/utils.dart';
-import '../../data/models/models.dart';
 import '../../data/services/services.dart';
 import '../../providers/admin_provider.dart';
 
@@ -37,7 +36,9 @@ class _StockMutationPageState extends State<StockMutationPage> {
       if (admin.products.isEmpty) {
         await admin.fetchProducts();
       }
-      final txs = await StockServiceExt.getStockHistory(_selectedProductId!);
+      final txs = _selectedProductId == null
+          ? await StockServiceExt.getAllStockHistory()
+          : await StockServiceExt.getStockHistory(_selectedProductId!);
       if (mounted) {
         setState(() {
           _transactions = txs;

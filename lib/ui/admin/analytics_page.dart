@@ -21,6 +21,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     _load();
   }
 
+  String? error;
+
   Future<void> _load() async {
     try {
       final s = await AnalyticsService.getSalesAnalytics();
@@ -31,8 +33,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         productData = p;
         loading = false;
       });
-    } catch (_) {
-      if (mounted) setState(() => loading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        error = e.toString().replaceAll('Exception: ', '');
+        loading = false;
+      });
     }
   }
 
@@ -43,7 +49,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       appBar: AppBar(title: const Text('Analitik Penjualan', style: TextStyle(fontWeight: FontWeight.w800)), backgroundColor: Colors.white, elevation: 0),
       body: loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
+          : error != null
+              ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(error!, textAlign: TextAlign.center)))
+              : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 if (salesData != null)
@@ -76,6 +84,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 const SizedBox(height: 16),
                 const Text('Top Produk Terlaris', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 12),
+                if (productData != null && (productData!['topProducts'] as List).isEmpty)
+                  const Text('Belum ada penjualan di periode ini', style: TextStyle(color: AppColors.textSecondary)),
                 if (productData != null)
                   ... (productData!['topProducts'] as List).map((p) => ListTile(
                         leading: CircleAvatar(backgroundColor: AppColors.primary, child: Text('${p['qty']}', style: const TextStyle(color: Colors.white, fontSize: 12))),

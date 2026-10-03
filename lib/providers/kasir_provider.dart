@@ -20,10 +20,8 @@ class KasirProvider extends ChangeNotifier {
   double get subtotal => _cart.fold(0, (sum, item) => sum + ((item['price'] as double) * (item['qty'] as int)));
 
   Future<void> fetchProducts({String? query, bool forceRefresh = false}) async {
-    if (!forceRefresh && _products.isNotEmpty && query == null) {
-      return;
-    }
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
     try {
       _products = await ProductService.getProducts(query: query);
