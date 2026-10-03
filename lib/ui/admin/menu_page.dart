@@ -11,7 +11,10 @@ import 'report_page.dart';
 import 'promo_page.dart';
 import 'analytics_page.dart';
 import 'debt_page.dart';
-import 'debt_page.dart';
+import 'import_page.dart';
+import 'cash_reconcile_page.dart';
+import 'pdf_report_page.dart';
+import 'audit_page.dart';
 import 'barcode_label_page.dart';
 import '../gudang/stock_mutation_page.dart';
 import '../gudang/supplier_returns_page.dart';
@@ -303,6 +306,42 @@ class MenuPage extends StatelessWidget {
                 title: 'Hutang Supplier',
                 subtitle: 'Monitoring jatuh tempo tagihan supplier',
                 page: const DebtPage(),
+              ),
+            if (role == 'admin')
+              _MenuItem(
+                icon: Icons.upload_file_rounded,
+                iconBg: const Color(0xFFF1F5F9),
+                iconColor: const Color(0xFF475569),
+                title: 'Import Produk CSV',
+                subtitle: 'Upload massal sku, harga, stok awal',
+                page: const ImportPage(),
+              ),
+            if (role != 'gudang')
+              _MenuItem(
+                icon: Icons.account_balance_rounded,
+                iconBg: const Color(0xFFECFDF5),
+                iconColor: const Color(0xFF059669),
+                title: 'Rekonsiliasi Kas',
+                subtitle: 'Bandingkan uang fisik vs sistem',
+                page: const CashReconcilePage(),
+              ),
+            if (role != 'gudang')
+              _MenuItem(
+                icon: Icons.picture_as_pdf_rounded,
+                iconBg: const Color(0xFFFEF2F2),
+                iconColor: const Color(0xFFDC2626),
+                title: 'Laporan PDF',
+                subtitle: 'Cetak penjualan atau hutang',
+                page: const PdfReportPage(),
+              ),
+            if (role == 'admin')
+              _MenuItem(
+                icon: Icons.history_rounded,
+                iconBg: const Color(0xFFF8FAFC),
+                iconColor: const Color(0xFF334155),
+                title: 'Log Aktivitas',
+                subtitle: 'Siapa ubah apa',
+                page: const AuditPage(),
               ),
           ], context),
           const SizedBox(height: 18),

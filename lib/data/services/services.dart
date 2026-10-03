@@ -289,6 +289,36 @@ class PromoService {
   }
 }
 
+class AuditService {
+  static Future<List<dynamic>> getLogs() async {
+    final res = await HttpClient.get('/audit');
+    return res as List<dynamic>;
+  }
+}
+
+class CashService {
+  static Future<Map<String, dynamic>> getReconcile(String date) async {
+    final res = await HttpClient.get('/cash/reconcile?date=$date');
+    return res as Map<String, dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> saveReconcile(String date, double counted, {String? note}) async {
+    final res = await HttpClient.post('/cash/reconcile', {
+      'date': date,
+      'counted': counted,
+      if (note != null) 'note': note,
+    });
+    return res as Map<String, dynamic>;
+  }
+}
+
+class ImportService {
+  static Future<Map<String, dynamic>> importProducts(List<Map<String, dynamic>> rows) async {
+    final res = await HttpClient.post('/products/import', {'rows': rows});
+    return res as Map<String, dynamic>;
+  }
+}
+
 class AnalyticsService {
   static Future<Map<String, dynamic>> getProductAnalytics({String? from, String? to}) async {
     final params = <String, String>{};
