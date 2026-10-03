@@ -182,7 +182,7 @@ class _PoPageState extends State<PoPage> {
                       });
                     }),
                     icon: const Icon(Icons.add),
-                    label: const Text('+ Tambah Barang Lain'),
+                    label: const Text('Tambah Barang Lain'),
                   ),
                   const SizedBox(height: 12),
                   Row(
