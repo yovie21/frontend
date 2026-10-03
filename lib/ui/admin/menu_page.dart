@@ -8,6 +8,9 @@ import 'user_page.dart';
 import 'supplier_page.dart';
 import 'po_page.dart';
 import 'report_page.dart';
+import 'promo_page.dart';
+import 'analytics_page.dart';
+import 'debt_page.dart';
 import 'debt_page.dart';
 import 'barcode_label_page.dart';
 import '../gudang/stock_mutation_page.dart';
@@ -265,6 +268,24 @@ class MenuPage extends StatelessWidget {
           // Section 2: Keuangan & Laporan
           _sectionHeader('KEUANGAN & LAPORAN'),
           _groupedCard([
+            if (role == 'admin')
+              _MenuItem(
+                icon: Icons.local_offer_rounded,
+                iconBg: const Color(0xFFFEF3C7),
+                iconColor: const Color(0xFFD97706),
+                title: 'Manajemen Promo',
+                subtitle: 'Diskon dan promo per produk / global',
+                page: const PromoPage(),
+              ),
+            if (role != 'gudang')
+              _MenuItem(
+                icon: Icons.analytics_rounded,
+                iconBg: const Color(0xFFEFF6FF),
+                iconColor: const Color(0xFF2563EB),
+                title: 'Analitik Penjualan',
+                subtitle: 'Top produk terlaris & slow-moving',
+                page: const AnalyticsPage(),
+              ),
             if (role != 'gudang')
               _MenuItem(
                 icon: Icons.insights_rounded,

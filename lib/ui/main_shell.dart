@@ -4,6 +4,8 @@ import '../../core/constants.dart';
 import '../../data/models/models.dart';
 import '../../providers/auth_provider.dart';
 import 'admin/dashboard_page.dart';
+import 'admin/promo_page.dart';
+import 'admin/analytics_page.dart';
 import 'admin/product_page.dart';
 import 'gudang/stock_history_page.dart';
 import 'gudang/label_print_page.dart';

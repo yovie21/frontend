@@ -239,3 +239,72 @@ class DashboardService {
     return res as Map<String, dynamic>;
   }
 }
+
+class PromoService {
+  static Future<List<dynamic>> getPromos() async {
+    final res = await HttpClient.get('/promos');
+    return res as List<dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> createPromo({
+    required String name,
+    int? productId,
+    double? percent,
+    double? amount,
+    required String startDate,
+    required String endDate,
+  }) async {
+    final res = await HttpClient.post('/promos', {
+      'name': name,
+      'productId': productId,
+      'percent': percent,
+      'amount': amount,
+      'startDate': startDate,
+      'endDate': endDate,
+    });
+    return res as Map<String, dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> updatePromo(int id, {
+    String? name,
+    int? productId,
+    double? percent,
+    double? amount,
+    String? startDate,
+    String? endDate,
+  }) async {
+    final data = <String, dynamic>{};
+    if (name != null) data['name'] = name;
+    if (productId != null) data['productId'] = productId;
+    if (percent != null) data['percent'] = percent;
+    if (amount != null) data['amount'] = amount;
+    if (startDate != null) data['startDate'] = startDate;
+    if (endDate != null) data['endDate'] = endDate;
+    final res = await HttpClient.patch('/promos/$id', data);
+    return res as Map<String, dynamic>;
+  }
+
+  static Future<void> deletePromo(int id) async {
+    await HttpClient.delete('/promos/$id');
+  }
+}
+
+class AnalyticsService {
+  static Future<Map<String, dynamic>> getProductAnalytics({String? from, String? to}) async {
+    final params = <String, String>{};
+    if (from != null) params['from'] = from;
+    if (to != null) params['to'] = to;
+    final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+    final res = await HttpClient.get('/analytics/products${query.isNotEmpty ? '?$query' : ''}');
+    return res as Map<String, dynamic>;
+  }
+
+  static Future<Map<String, dynamic>> getSalesAnalytics({String? from, String? to}) async {
+    final params = <String, String>{};
+    if (from != null) params['from'] = from;
+    if (to != null) params['to'] = to;
+    final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+    final res = await HttpClient.get('/analytics/sales${query.isNotEmpty ? '?$query' : ''}');
+    return res as Map<String, dynamic>;
+  }
+}
