@@ -19,6 +19,12 @@ class _SupplierReturnPageState extends State<SupplierReturnPage> {
   void initState() {
     super.initState();
     _fetchReturns();
+    // Refresh background data supplier & products
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final admin = context.read<AdminProvider>();
+      admin.fetchSuppliers(forceRefresh: true);
+      admin.fetchProducts(forceRefresh: true);
+    });
   }
 
   Future<void> _fetchReturns() async {
@@ -32,14 +38,16 @@ class _SupplierReturnPageState extends State<SupplierReturnPage> {
     }
   }
 
-  void _showAddReturnModal() {
-    final gudang = context.read<GudangProvider>();
+  void _showAddReturnModal() async {
     final admin = context.read<AdminProvider>();
 
-    if (admin.suppliers.isEmpty || admin.products.isEmpty) {
-      admin.fetchSuppliers();
-      admin.fetchProducts();
-    }
+    // Force fetch latest suppliers and products
+    await Future.wait([
+      admin.fetchSuppliers(forceRefresh: true),
+      admin.fetchProducts(forceRefresh: true),
+    ]);
+
+    if (!mounted) return;
 
     int? selectedSupplier = admin.suppliers.isNotEmpty ? admin.suppliers.first.id : null;
     int? selectedProduct = admin.products.isNotEmpty ? admin.products.first.id : null;
@@ -108,6 +116,22 @@ class _SupplierReturnPageState extends State<SupplierReturnPage> {
                   if (selectedSupplier == null || selectedProduct == null) return;
                   final q = int.tryParse(qtyCtrl.text) ?? 0;
                   if (q <= 0) return;
+
+                  // Validasi stok produk tidak boleh kurang dari qty retur
+                  final selectedProd = admin.products.firstWhere(
+                    (p) => p.id == selectedProduct,
+                    orElse: () => admin.products.first,
+                  );
+
+                  if (q > selectedProd.stock) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(
+                        backgroundColor: const Color(0xFFDC2626),
+                        content: Text('Jumlah retur ($q) melebihi stok tersedia (${selectedProd.stock})!'),
+                      ),
+                    );
+                    return;
+                  }
 
                   setM(() => isSaving = true);
                   final ok = await admin.createSupplierReturn(

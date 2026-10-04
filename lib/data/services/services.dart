@@ -210,13 +210,13 @@ class SupplierReturnService {
   }
 
   static Future<Map<String, dynamic>> createSupplierReturn({
-    required int supplierId,
+    int? supplierId,
     required int productId,
     required int qty,
     required String reason,
   }) async {
     final res = await HttpClient.post('/supplier_returns', {
-      'supplierId': supplierId,
+      if (supplierId != null) 'supplierId': supplierId,
       'productId': productId,
       'qty': qty,
       'reason': reason,
