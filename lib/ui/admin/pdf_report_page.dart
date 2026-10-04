@@ -22,53 +22,200 @@ class _PdfReportPageState extends State<PdfReportPage> {
     setState(() => loading = true);
     try {
       final doc = pw.Document();
+      final printDate = DateTime.now().toIso8601String().substring(0, 16).replaceAll('T', ' ');
+      final brandColor = PdfColor.fromHex('#0F3826');
+
       if (kind == 'sales') {
         final res = await SaleService.getSales();
+        final totalNet = res.fold<double>(0, (sum, s) => sum + (double.tryParse(s.total.toString()) ?? 0.0));
+
         doc.addPage(
-          pw.Page(
+          pw.MultiPage(
             pageFormat: PdfPageFormat.a4,
-            build: (pw.Context ctx) => pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('LAPORAN PENJUALAN', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 8),
-                pw.Text('Dicetak: ${DateTime.now().toIso8601String().substring(0, 16)}'),
-                pw.Divider(),
-                pw.TableHelper.fromTextArray(
-                  headers: ['Nota', 'Total', 'Metode'],
-                  data: res.take(50).map((s) => [s.invoiceNo, 'Rp ${AppUtils.formatCurrency(s.total)}', s.paymentMethod]).toList(),
+            margin: const pw.EdgeInsets.all(32),
+            build: (pw.Context ctx) => [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('WARUNGKU / CAHAYA HERBAL', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: brandColor)),
+                      pw.SizedBox(height: 2),
+                      pw.Text('Sistem Konsinyasi & POS Toko Kelontong', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                    ],
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('LAPORAN PENJUALAN', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: brandColor)),
+                      pw.SizedBox(height: 2),
+                      pw.Text('Dicetak: $printDate', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                    ],
+                  ),
+                ],
+              ),
+              pw.Divider(height: 20, color: brandColor, thickness: 1.5),
+              pw.SizedBox(height: 10),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(color: PdfColors.grey200, borderRadius: pw.BorderRadius.circular(6)),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                  children: [
+                    pw.Text('Total Transaksi: ${res.length} Nota', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                    pw.Text('Total Omzet: Rp ${AppUtils.formatCurrency(totalNet)}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: brandColor)),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              pw.SizedBox(height: 14),
+              pw.TableHelper.fromTextArray(
+                headers: ['No', 'No. Nota', 'Waktu', 'Kasir', 'Metode', 'Total Bayar'],
+                data: res.asMap().entries.map((entry) {
+                  final i = entry.key + 1;
+                  final s = entry.value;
+                  return [
+                    i.toString(),
+                    s.invoiceNo,
+                    s.saleDate?.substring(0, 16).replaceAll('T', ' ') ?? '-',
+                    'Kasir',
+                    s.paymentMethod.toUpperCase(),
+                    'Rp ${AppUtils.formatCurrency(s.total)}',
+                  ];
+                }).toList(),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+                headerDecoration: pw.BoxDecoration(color: brandColor),
+                rowDecoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5))),
+                cellStyle: const pw.TextStyle(fontSize: 9),
+                cellAlignment: pw.Alignment.centerLeft,
+                columnWidths: {0: const pw.FixedColumnWidth(30), 1: const pw.FlexColumnWidth(2)},
+              ),
+              pw.SizedBox(height: 30),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Container(
+                    alignment: pw.Alignment.center,
+                    width: 140,
+                    child: pw.Column(children: [
+                      pw.Text('Dibuat Oleh,', style: const pw.TextStyle(fontSize: 10)),
+                      pw.SizedBox(height: 40),
+                      pw.Container(height: 1, color: PdfColors.black),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Kasir / Admin', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                    ]),
+                  ),
+                  pw.Container(
+                    alignment: pw.Alignment.center,
+                    width: 140,
+                    child: pw.Column(children: [
+                      pw.Text('Mengetahui,', style: const pw.TextStyle(fontSize: 10)),
+                      pw.SizedBox(height: 40),
+                      pw.Container(height: 1, color: PdfColors.black),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Pemilik Toko', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                    ]),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       } else {
         final res = await HttpClient.get('/reports/debt') as Map<String, dynamic>;
         final items = (res['items'] as List?) ?? [];
+        final totalHutang = res['totalHutang'] ?? 0;
+
         doc.addPage(
-          pw.Page(
+          pw.MultiPage(
             pageFormat: PdfPageFormat.a4,
-            build: (pw.Context ctx) => pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('LAPORAN HUTANG SUPPLIER', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 8),
-                pw.Text('Total Hutang: Rp ${AppUtils.formatCurrency(res['totalHutang'])}'),
-                pw.Divider(),
-                pw.TableHelper.fromTextArray(
-                  headers: ['Supplier', 'Total', 'Terbayar', 'Sisa'],
-                  data: items.take(50).map((raw) {
-                    final p = raw as Map<String, dynamic>;
-                    return [
-                      p['supplierName'] ?? '-',
-                      'Rp ${AppUtils.formatCurrency(p['total'])}',
-                      'Rp ${AppUtils.formatCurrency(p['paid'])}',
-                      'Rp ${AppUtils.formatCurrency(p['unpaid'])}',
-                    ];
-                  }).toList(),
+            margin: const pw.EdgeInsets.all(32),
+            build: (pw.Context ctx) => [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('WARUNGKU / CAHAYA HERBAL', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: brandColor)),
+                      pw.SizedBox(height: 2),
+                      pw.Text('Sistem Konsinyasi & POS Toko Kelontong', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                    ],
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('LAPORAN HUTANG SUPPLIER', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: brandColor)),
+                      pw.SizedBox(height: 2),
+                      pw.Text('Dicetak: $printDate', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                    ],
+                  ),
+                ],
+              ),
+              pw.Divider(height: 20, color: brandColor, thickness: 1.5),
+              pw.SizedBox(height: 10),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(color: PdfColors.grey200, borderRadius: pw.BorderRadius.circular(6)),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                  children: [
+                    pw.Text('Total Supplier PO: ${items.length}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                    pw.Text('Total Sisa Hutang: Rp ${AppUtils.formatCurrency(totalHutang)}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.red700)),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              pw.SizedBox(height: 14),
+              pw.TableHelper.fromTextArray(
+                headers: ['No', 'No. PO', 'Supplier', 'Tagihan', 'Terbayar', 'Sisa Hutang'],
+                data: items.asMap().entries.map((entry) {
+                  final i = entry.key + 1;
+                  final p = entry.value as Map<String, dynamic>;
+                  return [
+                    i.toString(),
+                    p['poNo'] ?? '-',
+                    p['supplierName'] ?? '-',
+                    'Rp ${AppUtils.formatCurrency(p['total'])}',
+                    'Rp ${AppUtils.formatCurrency(p['paid'])}',
+                    'Rp ${AppUtils.formatCurrency(p['unpaid'])}',
+                  ];
+                }).toList(),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+                headerDecoration: pw.BoxDecoration(color: brandColor),
+                rowDecoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5))),
+                cellStyle: const pw.TextStyle(fontSize: 9),
+                cellAlignment: pw.Alignment.centerLeft,
+                columnWidths: {0: const pw.FixedColumnWidth(30)},
+              ),
+              pw.SizedBox(height: 30),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Container(
+                    alignment: pw.Alignment.center,
+                    width: 140,
+                    child: pw.Column(children: [
+                      pw.Text('Dibuat Oleh,', style: const pw.TextStyle(fontSize: 10)),
+                      pw.SizedBox(height: 40),
+                      pw.Container(height: 1, color: PdfColors.black),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Admin Gudang', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                    ]),
+                  ),
+                  pw.Container(
+                    alignment: pw.Alignment.center,
+                    width: 140,
+                    child: pw.Column(children: [
+                      pw.Text('Mengetahui,', style: const pw.TextStyle(fontSize: 10)),
+                      pw.SizedBox(height: 40),
+                      pw.Container(height: 1, color: PdfColors.black),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Pemilik Toko', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                    ]),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       }
@@ -88,7 +235,7 @@ class _PdfReportPageState extends State<PdfReportPage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          children: [
+      children: [
             SegmentedButton<String>(
               segments: const [
                 ButtonSegment(value: 'sales', label: Text('Penjualan')),
