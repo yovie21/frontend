@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/utils.dart';
+import '../../../core/thermal_printer_service.dart';
 import '../../../data/models/models.dart';
 import '../../../data/services/services.dart';
 import '../../../providers/kasir_provider.dart';
@@ -119,7 +120,35 @@ class _ReceiptPageState extends State<ReceiptPage> {
                 _row('Metode Bayar', 0, customVal: s.paymentMethod.toUpperCase()),
                 _row('Tunai Diterima', s.cashPaid),
                 _row('Kembalian', s.changeGiven, bold: true),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F3826),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.print_rounded, size: 18),
+                    label: const Text('Cetak Struk Thermal (58mm)', style: TextStyle(fontWeight: FontWeight.w700)),
+                    onPressed: () async {
+                      try {
+                        await ThermalPrinterService.printReceipt(
+                          sale: s,
+                          items: detail != null && detail['items'] is List ? detail['items'] as List : null,
+                        );
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Gagal cetak: $e')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(height: 14),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(

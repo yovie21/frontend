@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants.dart';
 import '../../../core/utils.dart';
+import '../../../core/thermal_printer_service.dart';
 import '../../../data/models/models.dart';
 import '../../../data/services/services.dart';
 import '../../../providers/kasir_provider.dart';
@@ -424,20 +425,16 @@ class _SalesPageState extends State<SalesPage> {
                         'Cetak Nota',
                         style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F3826)),
                       ),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: const Color(0xFF0F3826),
-                            content: Row(
-                              children: [
-                                const Icon(Icons.print_rounded, color: Colors.white, size: 20),
-                                const SizedBox(width: 10),
-                                Expanded(child: Text('Mencetak nota ${s.nota}...')),
-                              ],
-                            ),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                      onPressed: () async {
+                        try {
+                          await ThermalPrinterService.printReceipt(sale: s, items: items);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Gagal mencetak struk: $e')),
+                            );
+                          }
+                        }
                       },
                     ),
                   ),
