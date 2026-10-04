@@ -17,16 +17,39 @@ class PdfReportPage extends StatefulWidget {
 class _PdfReportPageState extends State<PdfReportPage> {
   String kind = 'sales';
   bool loading = false;
+  
+  DateTime fromDate = DateTime.now().subtract(const Duration(days: 30));
+  DateTime toDate = DateTime.now();
+
+  Future<void> _selectDate(BuildContext context, bool isFrom) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: isFrom ? fromDate : toDate,
+      firstDate: DateTime(2023),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isFrom) {
+          fromDate = picked;
+        } else {
+          toDate = picked;
+        }
+      });
+    }
+  }
 
   Future<void> _generatePdf() async {
     setState(() => loading = true);
     try {
       final doc = pw.Document();
       final printDate = DateTime.now().toIso8601String().substring(0, 16).replaceAll('T', ' ');
+      final fromStr = fromDate.toIso8601String().substring(0, 10);
+      final toStr = toDate.toIso8601String().substring(0, 10);
       final brandColor = PdfColor.fromHex('#0F3826');
 
       if (kind == 'sales') {
-        final res = await SaleService.getSales();
+        final res = await SaleService.getSales(from: fromStr, to: toStr);
         final totalNet = res.fold<double>(0, (sum, s) => sum + (double.tryParse(s.total.toString()) ?? 0.0));
 
         doc.addPage(
@@ -40,9 +63,9 @@ class _PdfReportPageState extends State<PdfReportPage> {
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('WARUNGKU / CAHAYA HERBAL', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: brandColor)),
+                      pw.Text('WARUNGKU', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: brandColor)),
                       pw.SizedBox(height: 2),
-                      pw.Text('Sistem Konsinyasi & POS Toko Kelontong', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                      pw.Text('Sistem Kasir & Manajemen Toko Kelontong', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
                     ],
                   ),
                   pw.Column(
@@ -50,7 +73,8 @@ class _PdfReportPageState extends State<PdfReportPage> {
                     children: [
                       pw.Text('LAPORAN PENJUALAN', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: brandColor)),
                       pw.SizedBox(height: 2),
-                      pw.Text('Dicetak: $printDate', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                      pw.Text('Periode: $fromStr s/d $toStr', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey800)),
+                      pw.Text('Dicetak: $printDate', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
                     ],
                   ),
                 ],
@@ -122,7 +146,7 @@ class _PdfReportPageState extends State<PdfReportPage> {
           ),
         );
       } else {
-        final res = await HttpClient.get('/reports/debt') as Map<String, dynamic>;
+        final res = await HttpClient.get('/reports/debt?from=$fromStr&to=$toStr') as Map<String, dynamic>;
         final items = (res['items'] as List?) ?? [];
         final totalHutang = res['totalHutang'] ?? 0;
 
@@ -137,9 +161,9 @@ class _PdfReportPageState extends State<PdfReportPage> {
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('WARUNGKU / CAHAYA HERBAL', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: brandColor)),
+                      pw.Text('WARUNGKU', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: brandColor)),
                       pw.SizedBox(height: 2),
-                      pw.Text('Sistem Konsinyasi & POS Toko Kelontong', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                      pw.Text('Sistem Kasir & Manajemen Toko Kelontong', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
                     ],
                   ),
                   pw.Column(
@@ -147,7 +171,8 @@ class _PdfReportPageState extends State<PdfReportPage> {
                     children: [
                       pw.Text('LAPORAN HUTANG SUPPLIER', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: brandColor)),
                       pw.SizedBox(height: 2),
-                      pw.Text('Dicetak: $printDate', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                      pw.Text('Periode: $fromStr s/d $toStr', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey800)),
+                      pw.Text('Dicetak: $printDate', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
                     ],
                   ),
                 ],
@@ -235,7 +260,7 @@ class _PdfReportPageState extends State<PdfReportPage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-      children: [
+          children: [
             SegmentedButton<String>(
               segments: const [
                 ButtonSegment(value: 'sales', label: Text('Penjualan')),
@@ -244,11 +269,34 @@ class _PdfReportPageState extends State<PdfReportPage> {
               selected: {kind},
               onSelectionChanged: (s) => setState(() => kind = s.first),
             ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _selectDate(context, true),
+                    icon: const Icon(Icons.calendar_today_rounded, size: 16),
+                    label: Text('Dari: ${fromDate.toIso8601String().substring(0, 10)}'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _selectDate(context, false),
+                    icon: const Icon(Icons.calendar_today_rounded, size: 16),
+                    label: Text('Sampai: ${toDate.toIso8601String().substring(0, 10)}'),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: loading ? null : _generatePdf,
-              icon: const Icon(Icons.picture_as_pdf_rounded),
-              label: Text(loading ? 'Memproses...' : 'Pratinjau & Cetak PDF'),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: loading ? null : _generatePdf,
+                icon: const Icon(Icons.picture_as_pdf_rounded),
+                label: Text(loading ? 'Memproses...' : 'Pratinjau & Cetak PDF'),
+              ),
             ),
           ],
         ),
