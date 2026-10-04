@@ -202,6 +202,19 @@ class _SupplierReturnsPageState extends State<SupplierReturnsPage> {
     );
   }
 
+  Widget _detailRow(String label, String val, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600)),
+          Text(val, style: TextStyle(color: const Color(0xFF0F172A), fontSize: 14, fontWeight: isBold ? FontWeight.w800 : FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -222,30 +235,117 @@ class _SupplierReturnsPageState extends State<SupplierReturnsPage> {
                 : _returns.isEmpty
                     ? const Center(child: Text('Belum ada retur'))
                     : ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _returns.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (ctx, i) {
-                          final ret = _returns[i];
-                          return Container(
-                            padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _returns.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (ctx, i) {
+                        final ret = _returns[i];
+                        final id = ret['id'];
+                        final qty = ret['qty'] ?? 0;
+                        final reason = ret['reason'] ?? '-';
+                        final supplier = ret['supplier']?['name'] ?? '- Umum / Tanpa Supplier -';
+                        final product = ret['product']?['name'] ?? 'Produk';
+                        final sku = ret['product']?['sku'] ?? '-';
+                        final costPrice = (ret['product']?['costPrice'] as num?)?.toDouble() ?? 0;
+                        final totalValue = qty * costPrice;
+                        final dateStr = ret['createdAt'] != null
+                            ? AppUtils.formatDate(DateTime.tryParse(ret['createdAt'].toString()) ?? DateTime.now())
+                            : '-';
+
+                        return InkWell(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              backgroundColor: Colors.white,
+                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+                              builder: (ctx) => Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('Detail Retur #$id', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                                        IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                                      ],
+                                    ),
+                                    const Divider(),
+                                    const SizedBox(height: 8),
+                                    _detailRow('Tanggal', dateStr),
+                                    _detailRow('Supplier', supplier),
+                                    _detailRow('Nama Produk', product),
+                                    _detailRow('SKU', sku),
+                                    _detailRow('Jumlah Retur', '$qty Pcs'),
+                                    _detailRow('Harga Beli Satuan', 'Rp ${AppUtils.formatCurrency(costPrice)}'),
+                                    _detailRow('Total Estimasi', 'Rp ${AppUtils.formatCurrency(totalValue)}', isBold: true),
+                                    _detailRow('Alasan Retur', reason),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: const Color(0xFFE2E8F0)),
+                              boxShadow: const [BoxShadow(color: Color(0x05000000), blurRadius: 4, offset: Offset(0, 2))],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Retur #${ret['id']}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(6)),
+                                          child: Text('Retur #$id', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFDC2626))),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(dateStr, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                                      ],
+                                    ),
+                                    Text('Rp ${AppUtils.formatCurrency(totalValue)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF0F3826))),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(product, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF0F172A))),
                                 const SizedBox(height: 4),
-                                Text(AppUtils.formatDate(DateTime.tryParse(ret['createdAt']?.toString() ?? '') ?? DateTime.now()),
-                                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.store_mall_directory_outlined, size: 14, color: Color(0xFF64748B)),
+                                    const SizedBox(width: 4),
+                                    Text(supplier, style: const TextStyle(fontSize: 13, color: Color(0xFF475569))),
+                                    const SizedBox(width: 12),
+                                    const Icon(Icons.inventory_2_outlined, size: 14, color: Color(0xFF64748B)),
+                                    const SizedBox(width: 4),
+                                    Text('$qty Pcs', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8)),
+                                  child: Row(
+                                    children: [
+                                      const Text('Alasan: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+                                      Expanded(child: Text(reason, style: const TextStyle(fontSize: 12, color: Color(0xFF334155)))),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
+                    ),
       ),
     );
   }
