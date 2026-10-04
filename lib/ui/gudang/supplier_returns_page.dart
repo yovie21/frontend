@@ -246,7 +246,10 @@ class _SupplierReturnsPageState extends State<SupplierReturnsPage> {
                         final supplier = ret['supplier']?['name'] ?? '- Umum / Tanpa Supplier -';
                         final product = ret['product']?['name'] ?? 'Produk';
                         final sku = ret['product']?['sku'] ?? '-';
-                        final costPrice = (ret['product']?['costPrice'] as num?)?.toDouble() ?? 0;
+                        final rawCost = ret['product']?['costPrice'];
+                        final costPrice = rawCost is num
+                            ? rawCost.toDouble()
+                            : double.tryParse(rawCost?.toString() ?? '0') ?? 0.0;
                         final totalValue = qty * costPrice;
                         final dateStr = ret['createdAt'] != null
                             ? AppUtils.formatDate(DateTime.tryParse(ret['createdAt'].toString()) ?? DateTime.now())
