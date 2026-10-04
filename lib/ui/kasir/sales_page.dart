@@ -150,9 +150,18 @@ class _SalesPageState extends State<SalesPage> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
-            Text(
-              'Stok tersedia: ${p.stock} ${p.uom?['symbol'] ?? 'PCS'}',
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            Builder(
+              builder: (_) {
+                final avail = kasir.getAvailableStock(p);
+                return Text(
+                  'Sisa stok tersedia: $avail ${p.uom?['symbol'] ?? 'PCS'}',
+                  style: TextStyle(
+                    color: avail > 0 ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 16),
             for (final opt in uomOptions)
@@ -161,12 +170,21 @@ class _SalesPageState extends State<SalesPage> {
                 child: InkWell(
                   onTap: () {
                     Navigator.pop(ctx);
-                    kasir.addToCart(
+                    final success = kasir.addToCart(
                       p,
                       customPrice: opt['price'],
                       uomSymbol: opt['symbol'],
                       conversionFactor: opt['factor'],
                     );
+                    if (!success && mounted) {
+                      final avail = kasir.getAvailableStock(p);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: const Color(0xFFDC2626),
+                          content: Text('Stok tidak cukup! Sisa stok ${p.name} hanya $avail ${p.uom?['symbol'] ?? 'PCS'}'),
+                        ),
+                      );
+                    }
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
@@ -1130,7 +1148,18 @@ class _SalesPageState extends State<SalesPage> {
                                                     child: Text('${item['qty']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                                   ),
                                                   InkWell(
-                                                    onTap: () => kasir.updateCartQty(item['key'], 1),
+                                                    onTap: () {
+                                                      final ok = kasir.updateCartQty(item['key'], 1);
+                                                      if (!ok) {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          SnackBar(
+                                                            backgroundColor: const Color(0xFFDC2626),
+                                                            content: Text('Stok ${item['name']} sudah mencapai batas stok fisik yang tersedia!'),
+                                                            duration: const Duration(seconds: 1),
+                                                          ),
+                                                        );
+                                                      }
+                                                    },
                                                     child: Container(
                                                       padding: const EdgeInsets.all(4),
                                                       decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(6)),

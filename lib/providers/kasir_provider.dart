@@ -44,7 +44,11 @@ class KasirProvider extends ChangeNotifier {
     return used;
   }
 
-  void addToCart(Product p, {double? customPrice, String? uomSymbol, int conversionFactor = 1}) {
+  int getAvailableStock(Product p) {
+    return (p.stock - _getUsedBaseStock(p.id)).clamp(0, p.stock);
+  }
+
+  bool addToCart(Product p, {double? customPrice, String? uomSymbol, int conversionFactor = 1}) {
     final cartKey = '${p.id}_${uomSymbol ?? 'base'}';
     final idx = _cart.indexWhere((i) => i['key'] == cartKey);
     final selectedPrice = customPrice ?? p.price;
@@ -52,9 +56,9 @@ class KasirProvider extends ChangeNotifier {
 
     final usedByOthers = _getUsedBaseStock(p.id, excludeKey: cartKey);
     final currentQtyInRow = idx >= 0 ? (_cart[idx]['qty'] as int) : 0;
-    final nextBaseQty = (currentQtyInRow + 1) * conversionFactor;
+    final neededBaseQty = (currentQtyInRow + 1) * conversionFactor;
 
-    if (usedByOthers + nextBaseQty <= p.stock) {
+    if (usedByOthers + neededBaseQty <= p.stock) {
       if (idx >= 0) {
         _cart[idx]['qty'] = currentQtyInRow + 1;
       } else {
@@ -70,11 +74,14 @@ class KasirProvider extends ChangeNotifier {
           'maxStock': p.stock,
         });
       }
+      notifyListeners();
+      return true;
     }
     notifyListeners();
+    return false;
   }
 
-  void updateCartQty(String key, int delta) {
+  bool updateCartQty(String key, int delta) {
     final idx = _cart.indexWhere((i) => i['key'] == key);
     if (idx >= 0) {
       final newQty = (_cart[idx]['qty'] as int) + delta;
@@ -84,14 +91,21 @@ class KasirProvider extends ChangeNotifier {
 
       if (newQty <= 0) {
         _cart.removeAt(idx);
+        notifyListeners();
+        return true;
       } else {
         final usedByOthers = _getUsedBaseStock(productId, excludeKey: key);
         if (usedByOthers + (newQty * factor) <= maxStock) {
           _cart[idx]['qty'] = newQty;
+          notifyListeners();
+          return true;
+        } else {
+          notifyListeners();
+          return false;
         }
       }
     }
-    notifyListeners();
+    return false;
   }
 
   void clearCart() {
