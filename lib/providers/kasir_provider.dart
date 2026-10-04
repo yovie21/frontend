@@ -34,19 +34,30 @@ class KasirProvider extends ChangeNotifier {
     }
   }
 
+  int _getUsedBaseStock(int productId, {String? excludeKey}) {
+    int used = 0;
+    for (final item in _cart) {
+      if (item['id'] == productId && item['key'] != excludeKey) {
+        used += (item['qty'] as int) * (item['conversionFactor'] as int? ?? 1);
+      }
+    }
+    return used;
+  }
+
   void addToCart(Product p, {double? customPrice, String? uomSymbol, int conversionFactor = 1}) {
     final cartKey = '${p.id}_${uomSymbol ?? 'base'}';
     final idx = _cart.indexWhere((i) => i['key'] == cartKey);
     final selectedPrice = customPrice ?? p.price;
     final symbol = uomSymbol ?? p.uom?['symbol'] ?? 'pcs';
 
-    if (idx >= 0) {
-      final currentBaseQty = (_cart[idx]['qty'] as int) * conversionFactor;
-      if (currentBaseQty + conversionFactor <= p.stock) {
-        _cart[idx]['qty'] = (_cart[idx]['qty'] as int) + 1;
-      }
-    } else {
-      if (p.stock >= conversionFactor) {
+    final usedByOthers = _getUsedBaseStock(p.id, excludeKey: cartKey);
+    final currentQtyInRow = idx >= 0 ? (_cart[idx]['qty'] as int) : 0;
+    final nextBaseQty = (currentQtyInRow + 1) * conversionFactor;
+
+    if (usedByOthers + nextBaseQty <= p.stock) {
+      if (idx >= 0) {
+        _cart[idx]['qty'] = currentQtyInRow + 1;
+      } else {
         _cart.add({
           'key': cartKey,
           'id': p.id,
@@ -68,11 +79,16 @@ class KasirProvider extends ChangeNotifier {
     if (idx >= 0) {
       final newQty = (_cart[idx]['qty'] as int) + delta;
       final factor = (_cart[idx]['conversionFactor'] as int? ?? 1);
+      final productId = _cart[idx]['id'] as int;
       final maxStock = (_cart[idx]['maxStock'] as int);
+
       if (newQty <= 0) {
         _cart.removeAt(idx);
-      } else if (newQty * factor <= maxStock) {
-        _cart[idx]['qty'] = newQty;
+      } else {
+        final usedByOthers = _getUsedBaseStock(productId, excludeKey: key);
+        if (usedByOthers + (newQty * factor) <= maxStock) {
+          _cart[idx]['qty'] = newQty;
+        }
       }
     }
     notifyListeners();
