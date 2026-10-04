@@ -80,8 +80,9 @@ class _AuditPageState extends State<AuditPage> {
                     final user = r['user'] as Map<String, dynamic>?;
                     final action = _label(r['action']?.toString(), _actions);
                     final entity = _label(r['entity']?.toString(), _entities);
-                    final id = r['entityId'];
-                    final ref = id == null ? '' : ' · ID $id';
+                    final ref = (r['refNo'] != null && r['refNo'].toString().isNotEmpty)
+                        ? ' · ${r['refNo']}'
+                        : (r['entityId'] == null ? '' : ' · #${r['entityId']}');
                     return ListTile(
                       tileColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

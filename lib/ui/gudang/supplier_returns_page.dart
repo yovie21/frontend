@@ -251,9 +251,11 @@ class _SupplierReturnsPageState extends State<SupplierReturnsPage> {
                             ? rawCost.toDouble()
                             : double.tryParse(rawCost?.toString() ?? '0') ?? 0.0;
                         final totalValue = qty * costPrice;
-                        final dateStr = ret['createdAt'] != null
-                            ? AppUtils.formatDate(DateTime.tryParse(ret['createdAt'].toString()) ?? DateTime.now())
-                            : '-';
+                        final dt = DateTime.tryParse(ret['createdAt']?.toString() ?? '') ?? DateTime.now();
+                        final ymd = '${dt.year}${dt.month.toString().padLeft(2, '0')}${dt.day.toString().padLeft(2, '0')}';
+                        final seq = (int.tryParse(id.toString()) ?? 1) % 1000;
+                        final retNo = 'RET-$ymd-${seq.toString().padLeft(3, '0')}';
+                        final dateStr = ret['createdAt'] != null ? AppUtils.formatDate(dt) : '-';
 
                         return InkWell(
                           onTap: () {
@@ -270,12 +272,13 @@ class _SupplierReturnsPageState extends State<SupplierReturnsPage> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text('Detail Retur #$id', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                                        Text('Detail Retur $retNo', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                                         IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
                                       ],
                                     ),
                                     const Divider(),
                                     const SizedBox(height: 8),
+                                    _detailRow('No. Dokumen', retNo, isBold: true),
                                     _detailRow('Tanggal', dateStr),
                                     _detailRow('Supplier', supplier),
                                     _detailRow('Nama Produk', product),
@@ -309,7 +312,7 @@ class _SupplierReturnsPageState extends State<SupplierReturnsPage> {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(6)),
-                                          child: Text('Retur #$id', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFDC2626))),
+                                          child: Text(retNo, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFDC2626))),
                                         ),
                                         const SizedBox(width: 8),
                                         Text(dateStr, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
