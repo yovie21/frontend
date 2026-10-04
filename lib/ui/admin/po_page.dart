@@ -361,22 +361,53 @@ class _PoPageState extends State<PoPage> {
                       final po = gudang.purchaseOrders[i];
                       final name = po.supplier?['name']?.toString() ?? 'Supplier';
                       final itemCount = po.items.length;
+                      final dt = DateTime.tryParse(po.orderDate?.toString() ?? '') ?? DateTime.now();
+                      final ymd = '${dt.year}${dt.month.toString().padLeft(2, '0')}${dt.day.toString().padLeft(2, '0')}';
+                      final poNumber = po.poNo.isNotEmpty ? po.poNo : 'PO-$ymd-${po.id.toString().padLeft(3, '0')}';
+
                       return Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          onTap: () => _showDetail(po),
-                          title: Text('${AppUtils.formatDate(po.orderDate)} · $name', style: const TextStyle(fontWeight: FontWeight.w700)),
-                          subtitle: Text(
-                            '${po.status.toUpperCase()} · $itemCount barang · Rp ${AppUtils.formatCurrency(po.totalAmount)}',
-                            style: TextStyle(color: _statusColor(po.status), fontSize: 13, fontWeight: FontWeight.w600),
-                          ),
-                          trailing: _actions(po, gudang),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(6)),
+                                  child: Text(poNumber, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF1D4ED8))),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: _statusColor(po.status).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    po.status.toUpperCase(),
+                                    style: TextStyle(fontWeight: FontWeight.bold, color: _statusColor(po.status), fontSize: 11),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              onTap: () => _showDetail(po),
+                              title: Text(name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                              subtitle: Text(
+                                '$itemCount barang · Rp ${AppUtils.formatCurrency(po.totalAmount)}\n${AppUtils.formatDate(po.orderDate)}',
+                                style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, height: 1.3),
+                              ),
+                              trailing: _actions(po, gudang),
+                            ),
+                          ],
                         ),
                       );
                     },

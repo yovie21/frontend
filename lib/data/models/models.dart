@@ -191,6 +191,7 @@ class Sale {
 
 class PurchaseOrder {
   final int id;
+  final String poNo;
   final String status;
   final double totalAmount;
   final double paidAmount;
@@ -200,6 +201,7 @@ class PurchaseOrder {
 
   PurchaseOrder({
     required this.id,
+    this.poNo = '',
     required this.status,
     required this.totalAmount,
     this.paidAmount = 0.0,
@@ -211,6 +213,7 @@ class PurchaseOrder {
   factory PurchaseOrder.fromJson(Map<String, dynamic> json) {
     return PurchaseOrder(
       id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
+      poNo: json['poNo']?.toString() ?? '',
       status: json['status'] ?? 'draft',
       totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
       paidAmount: (json['paidAmount'] as num?)?.toDouble() ?? 0.0,
